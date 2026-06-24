@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a">
+<title>+Valor Operacional V3.2</title>
+<style>
+:root{--bg:#0f172a;--card:#111827;--muted:#94a3b8;--txt:#f8fafc;--accent:#22c55e;--blue:#2563eb;--danger:#ef4444;--warn:#f59e0b;--line:#334155}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0f172a,#111827);color:var(--txt)}
+header{padding:18px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0f172ae8;backdrop-filter:blur(8px);z-index:3}
+h1{font-size:20px;margin:0}.sub{color:var(--muted);font-size:13px;margin-top:4px}
+nav{display:flex;gap:8px;overflow:auto;padding:10px 16px;background:#020617;position:sticky;top:73px;z-index:2}
+button{border:0;border-radius:10px;padding:11px 13px;background:#1e293b;color:white;font-weight:700;cursor:pointer}
+button.active{background:var(--accent);color:#052e16}.danger{background:var(--danger)}.primary{background:var(--blue)}.ok{background:var(--accent);color:#052e16}.warn{background:var(--warn);color:#111827}
+main{padding:16px;max-width:1200px;margin:auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:#111827;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 10px 30px #0004}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#020617;color:white}
+input[type=checkbox]{width:auto;margin-right:8px}
+textarea{min-height:74px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{font-size:24px;font-weight:800}.muted{color:var(--muted)}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}th{color:var(--muted)}
+.hide{display:none}.analysis-box{white-space:pre-wrap;line-height:1.45}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#1e293b;margin:2px}
+.footer{font-size:12px;color:var(--muted);text-align:center;padding:25px}.checkline{display:block;margin:8px 0;color:#f8fafc}
+@media(max-width:620px){.row{grid-template-columns:1fr} nav{top:71px}}
+</style>
+</head>
+<body>
+<header>
+<h1>+Valor Operacional V3.2</h1>
+<div class="sub">Fechamento por Empresa • Supervisor • Posto/Condomínio • Pagamento</div>
+</header>
+
+<nav>
+<button onclick="show('lancar')" class="active" id="btn-lancar">Lançar</button>
+<button onclick="show('painel')" id="btn-painel">Painel</button>
+<button onclick="show('fechamento')" id="btn-fechamento">Fechamento</button>
+<button onclick="show('supervisores')" id="btn-supervisores">Supervisores</button>
+<button onclick="show('registros')" id="btn-registros">Registros</button>
+<button onclick="show('config')" id="btn-config">Config</button>
+</nav>
+
+<main>
+<section id="lancar">
+<div class="card">
+<h2>Novo lançamento</h2>
+<div class="row">
+<div><label>Supervisor</label><input id="supervisor" placeholder="Ex.: Wedson"></div>
+<div><label>Data</label><input id="data" type="date"></div>
+</div>
+<div class="row">
+<div><label>Posto / Condomínio / Contrato</label><input id="condominio" placeholder="Ex.: Spazio, Atoll, Viva Parque"></div>
+<div><label>Empresa</label><select id="empresa"><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div>
+</div>
+<div class="row">
+<div><label>Colaborador ausente / origem</label><input id="origem" placeholder="Ex.: efetivo 44h"></div>
+<div><label>Quem cobriu / executou</label><input id="executor" placeholder="Ex.: Fernando"></div>
+</div>
+<div class="row">
+<div><label>Categoria</label><select id="categoria"><option>Falta</option><option>Atestado</option><option>Férias</option><option>Licença maternidade</option><option>Falta de efetivo</option><option>Cobertura</option><option>Dobra</option><option>Treinamento</option><option>Vigia</option><option>Supervisão</option><option>Transporte/Uber</option><option>Material/Insumo</option><option>Serviço extra</option></select></div>
+<div><label>Valor R$</label><input id="valor" inputmode="decimal" placeholder="Ex.: 150,00"></div>
+</div>
+<div class="row">
+<div><label>Tipo de custo</label><select id="tipoCusto"><option>Não reembolsável</option><option>Reembolsável</option><option>Parcialmente reembolsável</option><option>A definir</option></select></div>
+<div><label>Responsável pelo custo</label><select id="responsavelCusto"><option>Empresa</option><option>Condomínio</option><option>Administradora</option><option>Compartilhado</option><option>A definir</option></select></div>
+</div>
+<label>Observação</label><textarea id="obs" placeholder="Detalhe a ocorrência"></textarea>
+<button class="ok" onclick="salvar()">Salvar</button>
+<button onclick="limparForm()">Limpar</button>
+</div>
+</section>
+
+<section id="painel" class="hide">
+<div class="card">
+<h2>Filtro do painel</h2>
+<div class="row"><div><label>Período</label><select id="periodoPainel" onchange="render()"><option value="hoje">Hoje</option><option value="semana">Semana</option><option value="quinzena">Quinzena</option><option value="mes">Mês</option><option value="todos">Todos</option></select></div><div><label>Data base</label><input id="dataBasePainel" type="date" onchange="render()"></div></div>
+</div>
+<div class="grid">
+<div class="card"><div class="muted">Total do período</div><div class="kpi" id="kpiTotal">R$ 0,00</div></div>
+<div class="card"><div class="muted">Registros</div><div class="kpi" id="kpiQtd">0</div></div>
+<div class="card"><div class="muted">Maior empresa</div><div class="kpi" id="kpiEmpresa">-</div></div>
+<div class="card"><div class="muted">Maior posto</div><div class="kpi" id="kpiMaior">-</div></div>
+</div>
+<div class="card"><h2>IA Gerencial</h2>
+<button class="warn" onclick="analisar()">ANALISAR</button>
+<button class="primary" onclick="prever()">PREVER CUSTOS</button>
+<button class="danger" onclick="vazamentos()">IDENTIFICAR VAZAMENTOS</button>
+<div id="analise" class="analysis-box muted" style="margin-top:12px">Escolha uma análise.</div></div>
+<div class="card"><h2>Total por empresa</h2><table id="tblEmpresa"><thead><tr><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h2>Ranking por posto/condomínio</h2><table id="tblCondo"><thead><tr><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h2>Ranking por categoria</h2><table id="tblCat"><thead><tr><th>Categoria</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h2>Alertas</h2><div id="alertas" class="muted">Sem alertas.</div></div>
+</section>
+
+<section id="fechamento" class="hide">
+<div class="card">
+<h2>Fechamento parcial para análise e pagamento</h2>
+<p class="muted">Escolha período e uma ou mais empresas. O fechamento agora mostra também supervisor e posto.</p>
+<div class="row">
+<div><label>Data inicial</label><input id="fechIni" type="date"></div>
+<div><label>Data final</label><input id="fechFim" type="date"></div>
+</div>
+<label>Empresas para fechamento</label>
+<label class="checkline"><input type="checkbox" class="empFech" value="Mais Valor Terceirização" checked>Mais Valor Terceirização</label>
+<label class="checkline"><input type="checkbox" class="empFech" value="Mais Valor Construção" checked>Mais Valor Construção</label>
+<label class="checkline"><input type="checkbox" class="empFech" value="Tecnofoco Terceirização" checked>Tecnofoco Terceirização</label>
+<label class="checkline"><input type="checkbox" class="empFech" value="Tecnofoco Construção" checked>Tecnofoco Construção</label>
+
+<div class="row">
+<div><label>Supervisor específico (opcional)</label><select id="filtroSupervisor"><option value="">Todos os supervisores</option></select></div>
+<div><label>Posto específico (opcional)</label><select id="filtroPosto"><option value="">Todos os postos</option></select></div>
+</div>
+
+<div class="row">
+<div><label>Status do fechamento</label><select id="statusFech"><option>Em análise</option><option>Aprovado para pagamento</option><option>Pago</option><option>Pendente de conferência</option></select></div>
+<div><label>Data prevista do pagamento</label><input id="dataPagamento" type="date"></div>
+</div>
+<label>Observação do fechamento</label><textarea id="obsFech" placeholder="Ex.: pagar quinta-feira apenas Mais Valor Terceirização e Tecnofoco Construção"></textarea>
+<button class="primary" onclick="gerarFechamento()">GERAR FECHAMENTO</button>
+<button class="ok" onclick="salvarFechamento()">SALVAR FECHAMENTO</button>
+<button onclick="copiarFechamento()">COPIAR RESUMO</button>
+<div id="resFechamento" class="analysis-box muted" style="margin-top:12px">Nenhum fechamento gerado.</div>
+</div>
+
+<div class="card">
+<h2>Histórico de fechamentos</h2>
+<button onclick="exportFechamentos()">Exportar fechamentos CSV</button>
+<table id="tblFechamentos"><thead><tr><th>Data</th><th>Período</th><th>Empresas</th><th>Supervisor/Posto</th><th>Status</th><th>Total</th></tr></thead><tbody></tbody></table>
+</div>
+</section>
+
+<section id="supervisores" class="hide">
+<div class="card"><h2>Resumo por supervisor</h2>
+<div class="row"><div><label>Período</label><select id="periodoSupervisor" onchange="render()"><option value="dia">Diário</option><option value="semana">Semanal</option><option value="quinzena">Quinzenal</option><option value="mes">Mensal</option><option value="todos">Todos</option></select></div><div><label>Data base</label><input id="dataBaseSupervisor" type="date" onchange="render()"></div></div>
+<table id="tblSupervisor"><thead><tr><th>Supervisor</th><th>Valor</th><th>Registros</th><th>Principais categorias</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h2>Supervisor por empresa</h2><table id="tblSupervisorEmpresa"><thead><tr><th>Supervisor</th><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h2>Supervisor por posto</h2><table id="tblSupervisorPosto"><thead><tr><th>Supervisor</th><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="registros" class="hide">
+<div class="card"><h2>Registros</h2><button class="primary" onclick="exportCSV()">Exportar CSV</button> <button onclick="baixarBackup()">Backup JSON</button> <button class="danger" onclick="apagarTudo()">Apagar tudo</button><table id="tblReg"><thead><tr><th>Data</th><th>Supervisor</th><th>Empresa</th><th>Posto</th><th>Categoria</th><th>Executor</th><th>Valor</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="config" class="hide">
+<div class="card"><h2>Versão V3.2</h2><p><span class="pill">Fechamento por empresa</span><span class="pill">Fechamento por supervisor</span><span class="pill">Fechamento por posto</span><span class="pill">Pagamento parcial</span><span class="pill">Copiar resumo</span></p></div>
+</section>
+</main>
+<div class="footer">Grupo +Valor • Operacional V3.2</div>
+
+<script>
+const KEY='grupo_valor_ocorrencias_v3';
+const KEYF='grupo_valor_fechamentos_v32';
+document.getElementById('data').valueAsDate=new Date();
+document.getElementById('dataBasePainel').valueAsDate=new Date();
+document.getElementById('dataBaseSupervisor').valueAsDate=new Date();
+document.getElementById('fechFim').valueAsDate=new Date();
+document.getElementById('dataPagamento').valueAsDate=new Date();
+let d7=new Date(); d7.setDate(d7.getDate()-6); document.getElementById('fechIni').valueAsDate=d7;
+
+function moeda(n){return Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function num(v){return Number(String(v||'0').replace(/\./g,'').replace(',','.'))||0;}
+function dados(){return JSON.parse(localStorage.getItem(KEY)||'[]');}
+function setDados(d){localStorage.setItem(KEY,JSON.stringify(d));render();}
+function fechamentos(){return JSON.parse(localStorage.getItem(KEYF)||'[]');}
+function setFechamentos(d){localStorage.setItem(KEYF,JSON.stringify(d));renderFechamentos();}
+function show(id){['lancar','painel','fechamento','supervisores','registros','config'].forEach(x=>document.getElementById(x).classList.add('hide'));['btn-lancar','btn-painel','btn-fechamento','btn-supervisores','btn-registros','btn-config'].forEach(x=>document.getElementById(x).classList.remove('active'));document.getElementById(id).classList.remove('hide');document.getElementById('btn-'+id).classList.add('active');render();}
+function salvar(){const r={id:Date.now(),criadoEm:new Date().toISOString(),supervisor:supervisor.value.trim()||'Não informado',data:data.value,condominio:condominio.value.trim(),empresa:empresa.value,origem:origem.value.trim(),executor:executor.value.trim(),categoria:categoria.value,valor:num(valor.value),tipoCusto:tipoCusto.value,responsavelCusto:responsavelCusto.value,obs:obs.value.trim()};if(!r.data||!r.condominio||!r.valor){alert('Preencha data, posto/condomínio e valor.');return;}const d=dados();d.push(r);setDados(d);limparForm();alert('Lançamento salvo.');}
+function limparForm(){['condominio','origem','executor','valor','obs'].forEach(id=>document.getElementById(id).value='');}
+function agrupar(lista,campo){const m={};lista.forEach(r=>{const k=r[campo]||'Não informado';if(!m[k])m[k]={valor:0,qtd:0,items:[]};m[k].valor+=Number(r.valor||0);m[k].qtd++;m[k].items.push(r);});return Object.entries(m).sort((a,b)=>b[1].valor-a[1].valor);}
+function agrupar2(lista,c1,c2){const m={};lista.forEach(r=>{const k=(r[c1]||'Não informado')+'||'+(r[c2]||'Não informado');if(!m[k])m[k]={valor:0,qtd:0,a:r[c1]||'Não informado',b:r[c2]||'Não informado'};m[k].valor+=Number(r.valor||0);m[k].qtd++;});return Object.values(m).sort((a,b)=>b.valor-a.valor);}
+function filtrar(lista,periodo,baseStr){if(periodo==='todos')return lista;const base=new Date((baseStr||new Date().toISOString().slice(0,10))+'T00:00:00');let ini=new Date(base),fim=new Date(base);if(periodo==='hoje'||periodo==='dia'){}else if(periodo==='semana'){const day=base.getDay();const diff=(day===0?-6:1-day);ini=new Date(base);ini.setDate(base.getDate()+diff);fim=new Date(ini);fim.setDate(ini.getDate()+6);}else if(periodo==='quinzena'){ini=new Date(base.getFullYear(),base.getMonth(),base.getDate()<=15?1:16);fim=new Date(base.getFullYear(),base.getMonth(),base.getDate()<=15?15:new Date(base.getFullYear(),base.getMonth()+1,0).getDate());}else if(periodo==='mes'){ini=new Date(base.getFullYear(),base.getMonth(),1);fim=new Date(base.getFullYear(),base.getMonth()+1,0);}return lista.filter(r=>{const dt=new Date(r.data+'T00:00:00');return dt>=ini&&dt<=fim;});}
+function painelDados(){return filtrar(dados(),periodoPainel.value,dataBasePainel.value);}
+function listaOpcoes(campo){return [...new Set(dados().map(r=>r[campo]).filter(Boolean))].sort();}
+function atualizarFiltrosFechamento(){
+ const supAtual=filtroSupervisor.value, postoAtual=filtroPosto.value;
+ filtroSupervisor.innerHTML='<option value="">Todos os supervisores</option>'+listaOpcoes('supervisor').map(x=>`<option>${x}</option>`).join('');
+ filtroPosto.innerHTML='<option value="">Todos os postos</option>'+listaOpcoes('condominio').map(x=>`<option>${x}</option>`).join('');
+ filtroSupervisor.value=supAtual; filtroPosto.value=postoAtual;
+}
+function porFechamento(ini,fim,emps,sup,posto){return dados().filter(r=>r.data>=ini&&r.data<=fim&&emps.includes(r.empresa)&&(!sup||r.supervisor===sup)&&(!posto||r.condominio===posto));}
+function topCategorias(items){return agrupar(items,'categoria').slice(0,3).map(([k,v])=>`${k}: ${moeda(v.valor)}`).join(' | ');}
+function render(){atualizarFiltrosFechamento();const d=painelDados(),total=d.reduce((s,r)=>s+Number(r.valor||0),0);kpiTotal.textContent=moeda(total);kpiQtd.textContent=d.length;const emp=agrupar(d,'empresa'),condo=agrupar(d,'condominio');kpiEmpresa.textContent=emp[0]?emp[0][0]:'-';kpiMaior.textContent=condo[0]?condo[0][0]:'-';tblEmpresa.querySelector('tbody').innerHTML=emp.map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join('');tblCondo.querySelector('tbody').innerHTML=condo.map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join('');tblCat.querySelector('tbody').innerHTML=agrupar(d,'categoria').map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join('');tblReg.querySelector('tbody').innerHTML=dados().slice().reverse().map(r=>`<tr><td>${r.data}</td><td>${r.supervisor}</td><td>${r.empresa}</td><td>${r.condominio}</td><td>${r.categoria}</td><td>${r.executor||'-'}</td><td>${moeda(r.valor)}</td></tr>`).join('');const ds=filtrar(dados(),periodoSupervisor.value,dataBaseSupervisor.value);tblSupervisor.querySelector('tbody').innerHTML=agrupar(ds,'supervisor').map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td><td>${topCategorias(v.items)}</td></tr>`).join('');tblSupervisorEmpresa.querySelector('tbody').innerHTML=agrupar2(ds,'supervisor','empresa').map(x=>`<tr><td>${x.a}</td><td>${x.b}</td><td>${moeda(x.valor)}</td><td>${x.qtd}</td></tr>`).join('');tblSupervisorPosto.querySelector('tbody').innerHTML=agrupar2(ds,'supervisor','condominio').map(x=>`<tr><td>${x.a}</td><td>${x.b}</td><td>${moeda(x.valor)}</td><td>${x.qtd}</td></tr>`).join('');renderAlertas(d,condo);renderFechamentos();}
+function renderAlertas(d,condo){const alerts=[];condo.forEach(([k,v])=>{if(v.valor>=2000)alerts.push(`🚨 ${k} ultrapassou ${moeda(v.valor)} no período.`)});agrupar(d,'categoria').forEach(([k,v])=>{if(['Dobra','Falta de efetivo','Treinamento'].includes(k)&&v.valor>=1000)alerts.push(`⚠️ ${k} soma ${moeda(v.valor)}.`)});alertas.innerHTML=alerts.length?alerts.map(a=>`<p>${a}</p>`).join(''):'Sem alertas.';}
+function pct(v,t){return t?((v/t)*100).toFixed(1).replace('.',',')+'%':'0%';}
+function analisar(){const d=painelDados();if(!d.length){analise.textContent='Sem lançamentos no período.';return;}const total=d.reduce((s,r)=>s+Number(r.valor||0),0),emp=agrupar(d,'empresa'),condo=agrupar(d,'condominio'),cat=agrupar(d,'categoria');analise.textContent=`RESUMO EXECUTIVO\n\nTotal do período: ${moeda(total)} em ${d.length} registros.\nMaior empresa: ${emp[0][0]} - ${moeda(emp[0][1].valor)} (${pct(emp[0][1].valor,total)}).\nMaior posto: ${condo[0][0]} - ${moeda(condo[0][1].valor)} (${pct(condo[0][1].valor,total)}).\nMaior categoria: ${cat[0][0]} - ${moeda(cat[0][1].valor)} (${pct(cat[0][1].valor,total)}).`;}
+function prever(){const d=painelDados();if(!d.length){analise.textContent='Sem lançamentos para prever.';return;}const total=d.reduce((s,r)=>s+Number(r.valor||0),0);let fator=4;if(periodoPainel.value==='hoje')fator=30;if(periodoPainel.value==='semana')fator=4.33;if(periodoPainel.value==='quinzena')fator=2;if(periodoPainel.value==='mes'||periodoPainel.value==='todos')fator=1;analise.textContent=`PREVISÃO DE CUSTO\n\nBase: ${moeda(total)}.\nProjeção mensal aproximada: ${moeda(total*fator)}.`;}
+function vazamentos(){const d=painelDados();if(!d.length){analise.textContent='Sem lançamentos.';return;}const total=d.reduce((s,r)=>s+Number(r.valor||0),0);const crit=d.filter(r=>['Falta de efetivo','Dobra','Treinamento','Falta','Atestado'].includes(r.categoria));const val=crit.reduce((s,r)=>s+Number(r.valor||0),0);const condo=agrupar(crit,'condominio');analise.textContent=`VAZAMENTOS\n\nCustos críticos: ${moeda(val)} (${pct(val,total)}).\nPrincipal foco: ${condo[0]?condo[0][0]+' - '+moeda(condo[0][1].valor):'-'}.`;}
+function empresasSelecionadas(){return Array.from(document.querySelectorAll('.empFech:checked')).map(x=>x.value);}
+function gerarFechamento(){const emps=empresasSelecionadas(),ini=fechIni.value,fim=fechFim.value,sup=filtroSupervisor.value,posto=filtroPosto.value;if(!ini||!fim||!emps.length){alert('Informe período e pelo menos uma empresa.');return null;}const d=porFechamento(ini,fim,emps,sup,posto);const total=d.reduce((s,r)=>s+Number(r.valor||0),0);const porEmp=agrupar(d,'empresa'),porSup=agrupar(d,'supervisor'),porPosto=agrupar(d,'condominio'),porSupPosto=agrupar2(d,'supervisor','condominio'),porCat=agrupar(d,'categoria');let txt=`FECHAMENTO PARCIAL\n\nPeríodo: ${ini} a ${fim}\nEmpresas: ${emps.join(', ')}\nSupervisor: ${sup||'Todos'}\nPosto: ${posto||'Todos'}\nStatus: ${statusFech.value}\nPagamento previsto: ${dataPagamento.value||'-'}\n\nTOTAL PARA ANÁLISE/PAGAMENTO: ${moeda(total)}\nRegistros: ${d.length}\n\nTOTAL POR EMPRESA\n`;txt+=porEmp.map(([k,v])=>`- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join('\n')||'-';txt+=`\n\nFECHAMENTO POR SUPERVISOR\n`;txt+=porSup.map(([k,v])=>`- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join('\n')||'-';txt+=`\n\nFECHAMENTO POR POSTO/CONDOMÍNIO\n`;txt+=porPosto.map(([k,v])=>`- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join('\n')||'-';txt+=`\n\nSUPERVISOR x POSTO\n`;txt+=porSupPosto.map(x=>`- ${x.a} / ${x.b}: ${moeda(x.valor)} | ${x.qtd} registros`).join('\n')||'-';txt+=`\n\nPRINCIPAIS CATEGORIAS\n`;txt+=porCat.slice(0,5).map(([k,v])=>`- ${k}: ${moeda(v.valor)}`).join('\n')||'-';resFechamento.textContent=txt;return {id:Date.now(),criadoEm:new Date().toISOString().slice(0,10),ini,fim,empresas:emps,supervisor:sup||'Todos',posto:posto||'Todos',status:statusFech.value,dataPagamento:dataPagamento.value,total,qtd:d.length,obs:obsFech.value,resumo:txt};}
+function salvarFechamento(){const f=gerarFechamento();if(!f)return;const fs=fechamentos();fs.push(f);setFechamentos(fs);alert('Fechamento salvo.');}
+async function copiarFechamento(){const txt=resFechamento.textContent||'';try{await navigator.clipboard.writeText(txt);alert('Resumo copiado.');}catch(e){alert('Não consegui copiar automaticamente. Selecione o texto e copie manualmente.');}}
+function renderFechamentos(){tblFechamentos.querySelector('tbody').innerHTML=fechamentos().slice().reverse().map(f=>`<tr><td>${f.criadoEm}</td><td>${f.ini} a ${f.fim}</td><td>${f.empresas.join('<br>')}</td><td>${f.supervisor||'Todos'}<br>${f.posto||'Todos'}</td><td>${f.status}</td><td>${moeda(f.total)}</td></tr>`).join('');}
+function exportCSV(){const cols=['data','supervisor','condominio','empresa','origem','executor','categoria','valor','tipoCusto','responsavelCusto','obs'];const rows=[cols.join(';')].concat(dados().map(r=>cols.map(c=>`"${String(r[c]??'').replace(/"/g,'""')}"`).join(';')));download('controle_operacional_v32.csv',rows.join('\n'),'text/csv;charset=utf-8');}
+function exportFechamentos(){const cols=['criadoEm','ini','fim','empresas','supervisor','posto','status','dataPagamento','total','qtd','obs'];const rows=[cols.join(';')].concat(fechamentos().map(r=>cols.map(c=>`"${String(c==='empresas'?r[c].join(', '):(r[c]??'')).replace(/"/g,'""')}"`).join(';')));download('fechamentos_v32.csv',rows.join('\n'),'text/csv;charset=utf-8');}
+function baixarBackup(){download('backup_controle_operacional_v32.json',JSON.stringify({lancamentos:dados(),fechamentos:fechamentos()},null,2),'application/json');}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();}
+function apagarTudo(){if(confirm('Apagar todos os lançamentos?'))setDados([]);}
+render();
+</script>
+</body>
+</html>
