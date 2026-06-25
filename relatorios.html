@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatórios +Valor Operacional</title>
+<style>
+:root{--bg:#0f172a;--card:#111827;--line:#334155;--txt:#f8fafc;--muted:#94a3b8;--ok:#22c55e;--blue:#2563eb;--warn:#f59e0b;--danger:#ef4444}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:var(--txt)}
+header{padding:18px;background:#020617;border-bottom:1px solid var(--line)}
+main{padding:16px;max-width:1250px;margin:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;color:var(--muted);font-size:13px;margin-top:10px}
+input,select{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#020617;color:white}
+button{border:0;border-radius:10px;padding:11px 14px;background:#1e293b;color:white;font-weight:700;cursor:pointer;margin-top:10px}
+.ok{background:var(--ok);color:#052e16}.primary{background:var(--blue)}.warn{background:var(--warn);color:#111827}.danger{background:var(--danger)}
+.muted{color:var(--muted)}.hide{display:none}.kpi{font-size:24px;font-weight:800}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{color:#cbd5e1;background:#111827}
+a{color:#93c5fd}
+
+/* Modelo planilha */
+.sheet-wrap{background:white;color:#000;padding:10px;border-radius:4px;overflow:auto}
+.sheet-report{width:100%;border-collapse:collapse;table-layout:fixed;font-family:Arial,Helvetica,sans-serif;color:#000;background:white}
+.sheet-report th,.sheet-report td{border:1px solid #000;padding:4px 5px;height:22px;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet-report .title-row th{font-size:20px;font-weight:900;height:28px;text-align:center;border:2px solid #000;background:#fff}
+.sheet-report .spacer td{height:18px;background:#fff}
+.sheet-report .head th{font-size:10px;font-weight:900;background:#fff}
+.sheet-report td.valor{text-align:right}
+.sheet-report td.obs{text-align:left}
+.report-footer{display:flex;justify-content:space-between;color:#000;background:white;font-size:11px;margin-top:10px}
+@media print{
+  body{background:white;color:#000}
+  header,.no-print{display:none!important}
+  main{max-width:none;padding:0}
+  .card{border:0;background:white;color:#000;padding:0;margin:0}
+  .sheet-wrap{padding:0;overflow:visible}
+  .sheet-report th,.sheet-report td{border:1px solid #000;color:#000}
+  @page{size:A4 landscape;margin:8mm}
+}
+</style>
+</head>
+<body>
+<header>
+<h1 style="margin:0">Relatórios +Valor Operacional</h1>
+<div class="muted">Relatórios gerenciais separados da base principal V5.10</div>
+</header>
+
+<main>
+<section class="card no-print">
+<h2>Acesso Master</h2>
+<div class="grid">
+<div><label>Login</label><input id="loginUser" placeholder="master"></div>
+<div><label>Senha</label><input id="loginPass" type="password" placeholder="1234"></div>
+</div>
+<button class="ok" onclick="entrar()">Entrar e carregar dados</button>
+<button class="primary" onclick="testarApi()">Testar API</button>
+<div id="status" class="muted" style="margin-top:10px"></div>
+</section>
+
+<section id="app" class="hide">
+<section class="card no-print">
+<h2>Gerar relatório</h2>
+<div class="grid">
+<div><label>Modelo de relatório</label><select id="modeloRelatorio"><option value="supervisor">Relatório por Supervisor - Modelo Planilha</option><option value="analitico">Relatório Analítico Gerencial</option></select></div>
+<div><label>Data inicial</label><input id="dtIni" type="date"></div>
+<div><label>Data final</label><input id="dtFim" type="date"></div>
+<div><label>Supervisor</label><select id="fSupervisor"><option value="">Todos</option></select></div>
+<div><label>Empresa</label><select id="fEmpresa"><option value="">Todas</option></select></div>
+<div><label>Condomínio/Posto</label><select id="fPosto"><option value="">Todos</option></select></div>
+<div><label>Status</label><select id="fStatus"><option value="">Todos</option><option>Pendente</option><option>Aprovado</option><option>Reprovado</option></select></div>
+</div>
+<button class="ok" onclick="gerarRelatorio()">Gerar relatório</button>
+<button class="primary" onclick="window.print()">Imprimir / Salvar PDF</button>
+<button class="warn" onclick="exportarCSV()">Exportar CSV</button>
+</section>
+
+<section id="relatorioPlanilha" class="card">
+<div class="sheet-wrap">
+<table class="sheet-report" id="sheetTable">
+<colgroup>
+<col style="width:9%">
+<col style="width:13%">
+<col style="width:18%">
+<col style="width:13%">
+<col style="width:10%">
+<col style="width:7%">
+<col style="width:9%">
+<col style="width:11%">
+<col style="width:10%">
+</colgroup>
+<thead>
+<tr class="title-row"><th colspan="9">RELATORIO POR SUPERVISOR</th></tr>
+<tr class="spacer"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="spacer"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="spacer"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr class="head">
+<th>DATA</th><th>SUPERVISOR</th><th>EMPRESA</th><th>CONDOMINIO</th><th>CATEGORIA</th><th>VALOR</th><th>STATUS</th><th>EXECUTOR</th><th>ORIGEM</th>
+</tr>
+</thead>
+<tbody id="sheetBody"></tbody>
+</table>
+<div class="report-footer">
+<div id="footerData">Relatório gerado em: -</div>
+<div>Mais Valor Operacional - Relatórios</div>
+<div>Modelo: Supervisor</div>
+</div>
+</div>
+</section>
+
+<section id="relatorioAnalitico" class="hide">
+<div class="grid">
+<div class="card"><div class="muted">Total filtrado</div><div class="kpi" id="kTotal">R$ 0,00</div></div>
+<div class="card"><div class="muted">Registros</div><div class="kpi" id="kQtd">0</div></div>
+<div class="card"><div class="muted">Aprovado</div><div class="kpi" id="kAprovado">R$ 0,00</div></div>
+<div class="card"><div class="muted">Pendente</div><div class="kpi" id="kPendente">R$ 0,00</div></div>
+</div>
+<div class="card"><h3>Registros detalhados</h3><table id="tDetalhe"><thead><tr><th>Data</th><th>Supervisor</th><th>Empresa</th><th>Condomínio</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Executor</th><th>Origem</th></tr></thead><tbody></tbody></table></div>
+</section>
+</section>
+</main>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
+let currentUser = null;
+let rows = [];
+let filtrados = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  const hoje = new Date();
+  const ini = new Date();
+  ini.setDate(hoje.getDate() - 6);
+  dtIni.valueAsDate = ini;
+  dtFim.valueAsDate = hoje;
+});
+
+function moeda(n) {
+  return Number(n || 0).toLocaleString("pt-BR", {style:"currency",currency:"BRL"});
+}
+
+function dinheiroPlanilha(n) {
+  return Number(n || 0).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function jsonp(action, params={}) {
+  return new Promise((resolve, reject) => {
+    const cb = "cb_" + Date.now() + "_" + Math.floor(Math.random()*999999);
+    const u = new URL(API_URL);
+    u.searchParams.set("action", action);
+    u.searchParams.set("callback", cb);
+    u.searchParams.set("_cache", Date.now());
+    Object.keys(params).forEach(k => u.searchParams.set(k, params[k] ?? ""));
+    let done = false;
+    const script = document.createElement("script");
+    const timer = setTimeout(() => {
+      if(done) return;
+      done = true;
+      delete window[cb];
+      script.remove();
+      reject(new Error("API não respondeu em 15 segundos."));
+    }, 15000);
+    window[cb] = data => {
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+      resolve(data);
+    };
+    script.onerror = () => {
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+      reject(new Error("Falha ao acessar API."));
+    };
+    script.src = u.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function testarApi() {
+  status.textContent = "Testando API...";
+  try {
+    const resp = await jsonp("setup");
+    status.textContent = resp.ok ? "API OK: " + resp.message : JSON.stringify(resp);
+  } catch(e) {
+    status.textContent = "Erro: " + e.message;
+  }
+}
+
+async function entrar() {
+  status.textContent = "Conectando...";
+  try {
+    const resp = await jsonp("login", {login: loginUser.value.trim(), senha: loginPass.value});
+    if(!resp.ok) {
+      status.textContent = resp.error || "Falha no login.";
+      return;
+    }
+    if(resp.user.perfil !== "MASTER") {
+      status.textContent = "Acesso negado. Esta página é exclusiva do Master.";
+      return;
+    }
+    currentUser = resp.user;
+    status.textContent = "Login OK. Carregando dados...";
+    await carregarDados();
+    app.classList.remove("hide");
+    status.textContent = "Dados carregados.";
+  } catch(e) {
+    status.textContent = "Erro: " + e.message;
+  }
+}
+
+async function carregarDados() {
+  const resp = await jsonp("lancamentos", {user: currentUser.login, role: currentUser.perfil});
+  rows = Array.isArray(resp) ? resp : [];
+  rows = rows.map(r => ({...r, valor: Number(String(r.valor || 0).replace(",", ".")) || 0}));
+  preencherFiltros();
+  gerarRelatorio();
+}
+
+function preencherFiltros() {
+  fillSelect(fEmpresa, [...new Set(rows.map(r=>r.empresa).filter(Boolean))]);
+  fillSelect(fSupervisor, [...new Set(rows.map(r=>r.supervisor).filter(Boolean))]);
+  fillSelect(fPosto, [...new Set(rows.map(r=>r.condominio).filter(Boolean))]);
+}
+
+function fillSelect(el, arr) {
+  const first = el.querySelector("option").outerHTML;
+  el.innerHTML = first + arr.sort().map(x => `<option>${x}</option>`).join("");
+}
+
+function gerarRelatorio() {
+  const ini = dtIni.value;
+  const fim = dtFim.value;
+  const sup = fSupervisor.value;
+  const emp = fEmpresa.value;
+  const posto = fPosto.value;
+  const st = fStatus.value;
+
+  filtrados = rows.filter(r => {
+    const data = String(r.data || "").slice(0,10);
+    return (!ini || data >= ini) &&
+           (!fim || data <= fim) &&
+           (!sup || r.supervisor === sup) &&
+           (!emp || r.empresa === emp) &&
+           (!posto || r.condominio === posto) &&
+           (!st || (r.status || "Pendente") === st);
+  });
+
+  relatorioPlanilha.classList.toggle("hide", modeloRelatorio.value !== "supervisor");
+  relatorioAnalitico.classList.toggle("hide", modeloRelatorio.value !== "analitico");
+
+  gerarModeloPlanilha();
+  gerarAnalitico();
+}
+
+function gerarModeloPlanilha() {
+  const minRows = 18;
+  const linhas = filtrados.slice();
+  while(linhas.length < minRows) linhas.push({});
+  sheetBody.innerHTML = linhas.map(r => `
+    <tr>
+      <td>${r.data || ""}</td>
+      <td>${r.supervisor || ""}</td>
+      <td>${r.empresa || ""}</td>
+      <td>${r.condominio || ""}</td>
+      <td>${r.categoria || ""}</td>
+      <td class="valor">${r.valor ? dinheiroPlanilha(r.valor) : ""}</td>
+      <td>${r.status || ""}</td>
+      <td>${r.executor || ""}</td>
+      <td>${r.origem || ""}</td>
+    </tr>
+  `).join("");
+  footerData.textContent = "Relatório gerado em: " + new Date().toLocaleString("pt-BR");
+}
+
+function gerarAnalitico() {
+  const total = filtrados.reduce((s,r)=>s+Number(r.valor||0),0);
+  const aprovados = filtrados.filter(r => (r.status || "Pendente") === "Aprovado");
+  const pendentes = filtrados.filter(r => (r.status || "Pendente") === "Pendente");
+  kTotal.textContent = moeda(total);
+  kQtd.textContent = filtrados.length;
+  kAprovado.textContent = moeda(aprovados.reduce((s,r)=>s+Number(r.valor||0),0));
+  kPendente.textContent = moeda(pendentes.reduce((s,r)=>s+Number(r.valor||0),0));
+  tDetalhe.querySelector("tbody").innerHTML = filtrados.slice().reverse().map(r =>
+    `<tr><td>${r.data||""}</td><td>${r.supervisor||""}</td><td>${r.empresa||""}</td><td>${r.condominio||""}</td><td>${r.categoria||""}</td><td>${moeda(r.valor)}</td><td>${r.status||"Pendente"}</td><td>${r.executor||""}</td><td>${r.origem||""}</td></tr>`
+  ).join("");
+}
+
+function csvEscape(v) { return '"' + String(v ?? "").replace(/"/g,'""') + '"'; }
+
+function exportarCSV() {
+  const cols = ["data","supervisor","empresa","condominio","categoria","valor","status","executor","origem"];
+  const linhas = [cols.join(";")].concat(filtrados.map(r => cols.map(c => csvEscape(r[c])).join(";")));
+  const blob = new Blob([linhas.join("\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "relatorio_por_supervisor.csv";
+  a.click();
+}
+</script>
+</body>
+</html>
