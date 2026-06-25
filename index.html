@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.5</title>
+<title>+Valor Operacional V5.6</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </head>
 <body>
 <header>
-<h2>+Valor Operacional V5.5</h2>
+<h2>+Valor Operacional V5.6</h2>
 <div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
 </header>
 
@@ -33,6 +33,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <button id="b-painel" onclick="show('painel')" class="masterOnly">Painel Master</button>
 <button id="b-validacao" onclick="show('validacao')" class="masterOnly">Validação</button>
 <button id="b-treinamentos" onclick="show('treinamentos')" class="masterOnly">Treinamentos</button>
+<button id="b-efetivo" onclick="show('efetivo')" class="masterOnly">Efetivo</button>
+<button id="b-vacancias" onclick="show('vacancias')" class="masterOnly">Vacâncias</button>
+<button id="b-fechamento" onclick="show('fechamento')" class="masterOnly">Fechamento</button>
+<button id="b-registros" onclick="show('registros')" class="masterOnly">Registros</button>
 <button id="b-usuarios" onclick="show('usuarios')" class="masterOnly">Usuários</button>
 <button id="b-config" onclick="show('config')" class="masterOnly">Config</button>
 <button class="danger" onclick="logout()">Sair</button>
@@ -64,7 +68,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <div><label>Empresa</label><select id="empresa"><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div>
 </div>
 <div class="row">
-<div><label>Origem</label><input id="origem"></div>
+<div><label>Colaborador ausente / origem</label><input id="origem"></div>
 <div><label>Quem cobriu / candidato / executor</label><input id="executor"></div>
 </div>
 <div class="row">
@@ -123,15 +127,20 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </section>
 
 <section id="painel" class="hide">
-<div class="card"><button class="primary" onclick="carregar()">Atualizar da planilha</button></div>
+<div class="card"><h3>📊 Dashboard executivo</h3><button class="primary" onclick="carregar()">Atualizar da planilha</button></div>
 <div class="grid">
 <div class="card"><div class="muted">Total geral</div><div class="kpi" id="kpiTotal">R$ 0,00</div></div>
 <div class="card"><div class="muted">Registros</div><div class="kpi" id="kpiQtd">0</div></div>
 <div class="card"><div class="muted">Maior empresa</div><div class="kpi" id="kpiEmp">-</div></div>
+<div class="card"><div class="muted">Valores aprovados</div><div class="kpi" id="kpiAprovado">R$ 0,00</div></div>
+<div class="card"><div class="muted">Valores reprovados</div><div class="kpi" id="kpiReprovado">R$ 0,00</div></div>
+<div class="card"><div class="muted">Valores pendentes</div><div class="kpi" id="kpiPendente">R$ 0,00</div></div>
+<div class="card"><div class="muted">Postos vagos</div><div class="kpi" id="kpiVagos">0</div></div>
+<div class="card"><div class="muted">Vacâncias abertas</div><div class="kpi" id="kpiVacancias">0</div></div>
 </div>
-<div class="card"><h3>Por empresa</h3><table id="tEmpresa"><thead><tr><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
-<div class="card"><h3>Por supervisor</h3><table id="tSupervisor"><thead><tr><th>Supervisor</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
-<div class="card"><h3>Por posto</h3><table id="tPosto"><thead><tr><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h3>📈 Indicadores por empresa</h3><table id="tEmpresa"><thead><tr><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h3>📈 Indicadores por supervisor</h3><table id="tSupervisor"><thead><tr><th>Supervisor</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h3>📈 Indicadores por posto</h3><table id="tPosto"><thead><tr><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
 </section>
 
 <section id="validacao" class="hide">
@@ -154,12 +163,59 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </div>
 </section>
 
+
+<section id="efetivo" class="hide">
+<div class="card">
+<h3>👥 Controle completo de efetivo por posto</h3>
+<div class="row"><div><label>Empresa</label><select id="efEmpresa"><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div><div><label>Posto / Condomínio</label><input id="efPosto"></div></div>
+<div class="row"><div><label>Função</label><input id="efFuncao" placeholder="Portaria, Limpeza, Vigia..."></div><div><label>Escala</label><input id="efEscala" placeholder="44h, 12x36..."></div></div>
+<div class="row"><div><label>Colaborador titular</label><input id="efColaborador"></div><div><label>Status</label><select id="efStatus"><option>OCUPADO</option><option>VAGO</option><option>AFASTADO</option><option>FÉRIAS</option><option>TREINAMENTO</option></select></div></div>
+<div class="row"><div><label>Data início</label><input id="efDataInicio" type="date"></div><div><label>Observação</label><input id="efObs"></div></div>
+<button class="ok" onclick="salvarEfetivo()">Salvar efetivo</button>
+<button class="primary" onclick="carregarEfetivo()">Atualizar</button>
+<div id="efStatusMsg" class="muted" style="margin-top:10px"></div>
+</div>
+<div class="card"><table id="tEfetivo"><thead><tr><th>Empresa</th><th>Posto</th><th>Função</th><th>Escala</th><th>Titular</th><th>Status</th><th>Data início</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="vacancias" class="hide">
+<div class="card">
+<h3>🚨 Vacâncias automáticas</h3>
+<p class="muted">Vacâncias são geradas automaticamente a partir dos postos marcados como VAGO, AFASTADO ou FÉRIAS no efetivo.</p>
+<button class="primary" onclick="carregarEfetivo()">Atualizar vacâncias</button>
+</div>
+<div class="card"><table id="tVacancias"><thead><tr><th>Empresa</th><th>Posto</th><th>Função</th><th>Motivo</th><th>Data início</th><th>Dias aberto</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="fechamento" class="hide">
+<div class="card">
+<h3>💰 Fechamento financeiro</h3>
+<div class="row"><div><label>Data inicial</label><input id="fechIni" type="date"></div><div><label>Data final</label><input id="fechFim" type="date"></div></div>
+<div class="row"><div><label>Empresa</label><select id="fechEmpresa"><option value="">Todas</option><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div><div><label>Supervisor</label><select id="fechSupervisor"><option value="">Todos</option></select></div></div>
+<div class="row"><div><label>Posto</label><select id="fechPosto"><option value="">Todos</option></select></div><div><label>Status</label><select id="fechStatus"><option value="">Todos</option><option>Pendente</option><option>Aprovado</option><option>Reprovado</option></select></div></div>
+<button class="primary" onclick="gerarFechamento()">Gerar fechamento</button>
+<button class="ok" onclick="exportarFechamentoCSV()">Exportar fechamento CSV</button>
+<div id="resFechamento" class="muted" style="white-space:pre-wrap;margin-top:12px"></div>
+</div>
+<div class="card"><h3>Detalhes do fechamento</h3><table id="tFechamento"><thead><tr><th>Data</th><th>Empresa</th><th>Supervisor</th><th>Posto</th><th>Categoria</th><th>Valor</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="registros" class="hide">
+<div class="card">
+<h3>📄 Registros</h3>
+<p class="muted">Consulta geral dos lançamentos com exportação de dados.</p>
+<button class="primary" onclick="carregar()">Atualizar</button>
+<button class="ok" onclick="exportarRegistrosCSV()">Exportar CSV</button>
+</div>
+<div class="card"><table id="tRegistros"><thead><tr><th>Data</th><th>Supervisor</th><th>Empresa</th><th>Posto</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Obs</th></tr></thead><tbody></tbody></table></div>
+</section>
+
 <section id="config" class="hide">
 <div class="card">
 <h3>Configuração Master</h3>
 <label>URL Apps Script</label><input id="apiUrl">
 <button class="ok" onclick="salvarConfig()">Salvar URL</button>
-<button class="primary" onclick="rodarSetup()">Testar / Setup V5.5</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.6</button>
 <p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
 </div>
 </section>
@@ -171,8 +227,11 @@ const APIK = "mv_api_v53";
 const SESSION = "mv_session_v53";
 let rows = [];
 let currentUser = null;
+let efetivoRows = [];
+let fechamentoRows = [];
 
 document.getElementById("data").valueAsDate = new Date();
+setTimeout(() => { const hoje = new Date(); ["efDataInicio","fechFim"].forEach(id => { const el = document.getElementById(id); if (el) el.valueAsDate = hoje; }); const ini = document.getElementById("fechIni"); if (ini) { const d = new Date(); d.setDate(d.getDate()-6); ini.valueAsDate = d; } }, 0);
 window.addEventListener("DOMContentLoaded", () => { const dr = document.getElementById("dataRelatorioSupervisor"); if (dr) dr.valueAsDate = new Date(); });
 document.getElementById("apiUrl").value = localStorage.getItem(APIK) || DEFAULT_API_URL;
 
@@ -272,8 +331,8 @@ function logout() {
 function show(id) {
   if (currentUser && currentUser.perfil !== "MASTER" && !["lancar", "meus"].includes(id)) id = "lancar";
 
-  ["lancar","meus","painel","validacao","treinamentos","usuarios","config"].forEach(x => document.getElementById(x).classList.add("hide"));
-  ["b-lancar","b-meus","b-painel","b-validacao","b-treinamentos","b-usuarios","b-config"].forEach(x => {
+  ["lancar","meus","painel","validacao","treinamentos","efetivo","vacancias","fechamento","registros","usuarios","config"].forEach(x => document.getElementById(x).classList.add("hide"));
+  ["b-lancar","b-meus","b-painel","b-validacao","b-treinamentos","b-efetivo","b-vacancias","b-fechamento","b-registros","b-usuarios","b-config"].forEach(x => {
     const el = document.getElementById(x);
     if (el) el.classList.remove("active");
   });
@@ -282,6 +341,7 @@ function show(id) {
   const btn = document.getElementById("b-" + id);
   if (btn) btn.classList.add("active");
   render();
+  if (currentUser && currentUser.perfil === "MASTER") { try { const ef = await apiGet("efetivo"); efetivoRows = Array.isArray(ef) ? ef : []; } catch(e) {} render(); }
 }
 
 function toggleTreinamento() {
@@ -387,6 +447,158 @@ function setHojeRelatorio() {
   render();
 }
 
+
+async function apiGet(action, params = {}) {
+  return await jsonp(action, params);
+}
+
+async function carregarEfetivo() {
+  try {
+    const resp = await apiGet("efetivo");
+    efetivoRows = Array.isArray(resp) ? resp : [];
+    renderEfetivo();
+    renderVacancias();
+  } catch (e) {
+    const msg = document.getElementById("efStatusMsg");
+    if (msg) msg.textContent = "Erro ao carregar efetivo: " + e.message;
+  }
+}
+
+async function salvarEfetivo() {
+  const item = {
+    id: String(Date.now()),
+    empresa: document.getElementById("efEmpresa").value,
+    posto: document.getElementById("efPosto").value,
+    funcao: document.getElementById("efFuncao").value,
+    escala: document.getElementById("efEscala").value,
+    colaboradorTitular: document.getElementById("efColaborador").value,
+    status: document.getElementById("efStatus").value,
+    dataInicio: document.getElementById("efDataInicio").value,
+    observacao: document.getElementById("efObs").value
+  };
+  if (!item.empresa || !item.posto || !item.funcao) {
+    alert("Preencha empresa, posto e função.");
+    return;
+  }
+  const resp = await jsonp("add_efetivo", { payload: encodeURIComponent(JSON.stringify(item)) });
+  document.getElementById("efStatusMsg").textContent = resp.message || resp.error || JSON.stringify(resp);
+  await carregarEfetivo();
+}
+
+function renderEfetivo() {
+  const tb = document.querySelector("#tEfetivo tbody");
+  if (!tb) return;
+  tb.innerHTML = efetivoRows.map(r =>
+    `<tr><td>${r.empresa||""}</td><td>${r.posto||""}</td><td>${r.funcao||""}</td><td>${r.escala||""}</td><td>${r.colaboradorTitular||""}</td><td>${r.status||""}</td><td>${r.dataInicio||""}</td></tr>`
+  ).join("");
+}
+
+function diasAberto(dataInicio) {
+  if (!dataInicio) return "";
+  const ini = new Date(String(dataInicio).slice(0,10) + "T00:00:00");
+  const hoje = new Date();
+  const base = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+  return Math.max(0, Math.floor((base - ini) / 86400000));
+}
+
+function getVacanciasAutomaticas() {
+  return efetivoRows.filter(r => ["VAGO","AFASTADO","FÉRIAS"].includes(String(r.status||"").toUpperCase()))
+    .map(r => ({
+      empresa: r.empresa,
+      posto: r.posto,
+      funcao: r.funcao,
+      motivo: r.status,
+      dataInicio: r.dataInicio,
+      diasAberto: diasAberto(r.dataInicio),
+      status: "ABERTA"
+    }));
+}
+
+function renderVacancias() {
+  const tb = document.querySelector("#tVacancias tbody");
+  if (!tb) return;
+  const vac = getVacanciasAutomaticas();
+  tb.innerHTML = vac.map(r =>
+    `<tr><td>${r.empresa||""}</td><td>${r.posto||""}</td><td>${r.funcao||""}</td><td>${r.motivo||""}</td><td>${r.dataInicio||""}</td><td>${r.diasAberto}</td><td>${r.status}</td></tr>`
+  ).join("");
+}
+
+function atualizarFiltrosFechamento() {
+  const sup = document.getElementById("fechSupervisor");
+  const posto = document.getElementById("fechPosto");
+  if (!sup || !posto) return;
+  const supVal = sup.value, postoVal = posto.value;
+  const sups = [...new Set(rows.map(r => r.supervisor).filter(Boolean))].sort();
+  const postos = [...new Set(rows.map(r => r.condominio).filter(Boolean))].sort();
+  sup.innerHTML = '<option value="">Todos</option>' + sups.map(x => `<option>${x}</option>`).join("");
+  posto.innerHTML = '<option value="">Todos</option>' + postos.map(x => `<option>${x}</option>`).join("");
+  sup.value = supVal;
+  posto.value = postoVal;
+}
+
+function getFechamentoFiltrado() {
+  const ini = document.getElementById("fechIni")?.value || "";
+  const fim = document.getElementById("fechFim")?.value || "";
+  const emp = document.getElementById("fechEmpresa")?.value || "";
+  const sup = document.getElementById("fechSupervisor")?.value || "";
+  const posto = document.getElementById("fechPosto")?.value || "";
+  const st = document.getElementById("fechStatus")?.value || "";
+  return rows.filter(r => {
+    const data = String(r.data || "").slice(0,10);
+    return (!ini || data >= ini) && (!fim || data <= fim) && (!emp || r.empresa === emp) && (!sup || r.supervisor === sup) && (!posto || r.condominio === posto) && (!st || (r.status || "Pendente") === st);
+  });
+}
+
+function gerarFechamento() {
+  fechamentoRows = getFechamentoFiltrado();
+  const total = fechamentoRows.reduce((s,r)=>s+Number(r.valor||0),0);
+  const porEmpresa = agrupar("empresa", fechamentoRows).map(([k,v]) => `- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join("\\n");
+  const porSupervisor = agrupar("supervisor", fechamentoRows).map(([k,v]) => `- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join("\\n");
+  const porPosto = agrupar("condominio", fechamentoRows).map(([k,v]) => `- ${k}: ${moeda(v.valor)} | ${v.qtd} registros`).join("\\n");
+  document.getElementById("resFechamento").textContent =
+    `FECHAMENTO FINANCEIRO\\n\\nTotal: ${moeda(total)}\\nRegistros: ${fechamentoRows.length}\\n\\nPor empresa:\\n${porEmpresa || "-"}\\n\\nPor supervisor:\\n${porSupervisor || "-"}\\n\\nPor posto:\\n${porPosto || "-"}`;
+  renderFechamentoTabela();
+}
+
+function renderFechamentoTabela() {
+  const tb = document.querySelector("#tFechamento tbody");
+  if (!tb) return;
+  tb.innerHTML = fechamentoRows.slice().reverse().map(r =>
+    `<tr><td>${r.data||""}</td><td>${r.empresa||""}</td><td>${r.supervisor||""}</td><td>${r.condominio||""}</td><td>${r.categoria||""}</td><td>${moeda(r.valor)}</td><td>${r.status||"Pendente"}</td></tr>`
+  ).join("");
+}
+
+function csvEscape(v) {
+  return '"' + String(v ?? "").replace(/"/g, '""') + '"';
+}
+
+function downloadCSV(filename, arr) {
+  const cols = ["data","supervisor","empresa","condominio","categoria","valor","status","executor","origem","tipoCusto","responsavelCusto","obs"];
+  const lines = [cols.join(";")].concat(arr.map(r => cols.map(c => csvEscape(r[c])).join(";")));
+  const blob = new Blob([lines.join("\\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+
+function exportarRegistrosCSV() {
+  downloadCSV("registros_mais_valor.csv", rows);
+}
+
+function exportarFechamentoCSV() {
+  downloadCSV("fechamento_mais_valor.csv", fechamentoRows.length ? fechamentoRows : getFechamentoFiltrado());
+}
+
+function renderRegistros() {
+  const tb = document.querySelector("#tRegistros tbody");
+  if (!tb) return;
+  tb.innerHTML = rows.slice().reverse().map(r =>
+    `<tr><td>${r.data||""}</td><td>${r.supervisor||""}</td><td>${r.empresa||""}</td><td>${r.condominio||""}</td><td>${r.categoria||""}</td><td>${moeda(r.valor)}</td><td>${r.status||"Pendente"}</td><td>${r.obs||""}</td></tr>`
+  ).join("");
+}
+
+
 function agrupar(campo, arr = rows) {
   const map = {};
   arr.forEach(r => {
@@ -423,6 +635,18 @@ function render() {
   const total = rows.reduce((s, r) => s + Number(r.valor || 0), 0);
   document.getElementById("kpiTotal").textContent = moeda(total);
   document.getElementById("kpiQtd").textContent = rows.length;
+  const aprovadosGeral = rows.filter(r => (r.status || "Pendente") === "Aprovado");
+  const reprovadosGeral = rows.filter(r => (r.status || "Pendente") === "Reprovado");
+  const pendentesGeral = rows.filter(r => (r.status || "Pendente") === "Pendente");
+  const elA = document.getElementById("kpiAprovado"); if (elA) elA.textContent = moeda(aprovadosGeral.reduce((s,r)=>s+Number(r.valor||0),0));
+  const elR = document.getElementById("kpiReprovado"); if (elR) elR.textContent = moeda(reprovadosGeral.reduce((s,r)=>s+Number(r.valor||0),0));
+  const elP = document.getElementById("kpiPendente"); if (elP) elP.textContent = moeda(pendentesGeral.reduce((s,r)=>s+Number(r.valor||0),0));
+  const elV = document.getElementById("kpiVagos"); if (elV) elV.textContent = efetivoRows.filter(r => ["VAGO","AFASTADO","FÉRIAS"].includes(String(r.status||"").toUpperCase())).length;
+  const elVac = document.getElementById("kpiVacancias"); if (elVac) elVac.textContent = getVacanciasAutomaticas().length;
+  atualizarFiltrosFechamento();
+  renderEfetivo();
+  renderVacancias();
+  renderRegistros();
 
   const porEmpresa = agrupar("empresa");
   const porSupervisor = agrupar("supervisor");
