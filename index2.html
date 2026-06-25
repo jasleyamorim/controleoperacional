@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuração +Valor Operacional</title>
+<style>
+body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
+header{padding:16px;background:#020617}
+main{padding:14px;max-width:800px;margin:auto}
+.card{background:#111827;border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:12px}
+label{display:block;color:#94a3b8;font-size:13px;margin-top:10px}
+input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:white;box-sizing:border-box}
+button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:white;font-weight:700;cursor:pointer;margin-top:10px}
+.ok{background:#22c55e;color:#052e16}.primary{background:#2563eb}.danger{background:#ef4444}
+.muted{color:#94a3b8}.box{white-space:pre-wrap;line-height:1.45}
+a{color:#93c5fd}
+</style>
+</head>
+<body>
+<header>
+<h2>Configuração do +Valor Operacional</h2>
+<div class="muted">Atualização da URL do Google Apps Script</div>
+</header>
+
+<main>
+<div class="card">
+<h3>URL do Web App</h3>
+<p class="muted">Cole aqui a nova URL do Apps Script terminada em <b>/exec</b>. Essa informação será salva no navegador e usada pelo <b>index.html</b>.</p>
+
+<label>URL atual salva</label>
+<input id="urlAtual" readonly>
+
+<label>Nova URL do Web App</label>
+<input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
+
+<button class="ok" onclick="salvar()">Salvar URL</button>
+<button class="primary" onclick="testarSetup()">Testar / Rodar Setup</button>
+<button class="danger" onclick="limpar()">Limpar URL salva</button>
+
+<div id="status" class="box muted" style="margin-top:14px"></div>
+
+<p><a href="index.html">Voltar para o sistema</a></p>
+</div>
+</main>
+
+<script>
+const APIK = "mv_api_v53";
+
+function carregar() {
+  const url = localStorage.getItem(APIK) || "";
+  document.getElementById("urlAtual").value = url;
+  document.getElementById("apiUrl").value = url;
+}
+carregar();
+
+function salvar() {
+  const url = document.getElementById("apiUrl").value.trim();
+  if (!url) {
+    alert("Cole a URL do Web App.");
+    return;
+  }
+  if (!url.includes("/exec")) {
+    alert("A URL parece incorreta. Use a URL do Web App que termina em /exec.");
+    return;
+  }
+  localStorage.setItem(APIK, url);
+  carregar();
+  document.getElementById("status").textContent = "URL salva com sucesso. Agora volte para o sistema e faça login.";
+}
+
+function limpar() {
+  localStorage.removeItem(APIK);
+  carregar();
+  document.getElementById("status").textContent = "URL removida.";
+}
+
+function jsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const api = localStorage.getItem(APIK) || "";
+    if (!api) {
+      reject(new Error("URL não configurada."));
+      return;
+    }
+
+    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const url = new URL(api);
+    url.searchParams.set("action", action);
+    url.searchParams.set("callback", callbackName);
+    Object.keys(params).forEach(k => url.searchParams.set(k, params[k] ?? ""));
+
+    window[callbackName] = (data) => {
+      delete window[callbackName];
+      script.remove();
+      resolve(data);
+    };
+
+    const script = document.createElement("script");
+    script.src = url.toString();
+    script.onerror = () => {
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("Falha ao acessar o Apps Script."));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+async function testarSetup() {
+  try {
+    salvar();
+    const resp = await jsonp("setup");
+    document.getElementById("status").textContent = JSON.stringify(resp, null, 2);
+  } catch (e) {
+    document.getElementById("status").textContent = "Erro: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
