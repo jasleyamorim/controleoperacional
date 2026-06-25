@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Configuração +Valor Operacional</title>
+<title>Configuração +Valor Operacional V5.4</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -13,88 +13,66 @@ label{display:block;color:#94a3b8;font-size:13px;margin-top:10px}
 input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:white;box-sizing:border-box}
 button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:white;font-weight:700;cursor:pointer;margin-top:10px}
 .ok{background:#22c55e;color:#052e16}.primary{background:#2563eb}.danger{background:#ef4444}
-.muted{color:#94a3b8}.box{white-space:pre-wrap;line-height:1.45}
-a{color:#93c5fd}
+.muted{color:#94a3b8}.box{white-space:pre-wrap;line-height:1.45}a{color:#93c5fd}
 </style>
 </head>
 <body>
 <header>
-<h2>Configuração do +Valor Operacional</h2>
-<div class="muted">Atualização da URL do Google Apps Script</div>
+<h2>Configuração +Valor Operacional V5.4</h2>
+<div class="muted">URL padrão já embutida no sistema</div>
 </header>
-
 <main>
 <div class="card">
 <h3>URL do Web App</h3>
-<p class="muted">Cole aqui a nova URL do Apps Script terminada em <b>/exec</b>. Essa informação será salva no navegador e usada pelo <b>index.html</b>.</p>
-
-<label>URL atual salva</label>
+<p class="muted">O sistema já usa uma URL oficial embutida. Use esta tela apenas se precisar substituir temporariamente a URL neste navegador.</p>
+<label>URL oficial embutida</label>
+<input value="https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec" readonly>
+<label>URL salva neste navegador</label>
 <input id="urlAtual" readonly>
-
-<label>Nova URL do Web App</label>
+<label>Nova URL temporária</label>
 <input id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec">
-
-<button class="ok" onclick="salvar()">Salvar URL</button>
+<button class="ok" onclick="salvar()">Salvar URL temporária</button>
 <button class="primary" onclick="testarSetup()">Testar / Rodar Setup</button>
-<button class="danger" onclick="limpar()">Limpar URL salva</button>
-
+<button class="danger" onclick="limpar()">Voltar para URL oficial</button>
 <div id="status" class="box muted" style="margin-top:14px"></div>
-
 <p><a href="index.html">Voltar para o sistema</a></p>
 </div>
 </main>
-
 <script>
 const APIK = "mv_api_v53";
-
+const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
+function api() { return localStorage.getItem(APIK) || DEFAULT_API_URL; }
 function carregar() {
   const url = localStorage.getItem(APIK) || "";
-  document.getElementById("urlAtual").value = url;
+  document.getElementById("urlAtual").value = url || "(usando URL oficial embutida)";
   document.getElementById("apiUrl").value = url;
 }
 carregar();
-
 function salvar() {
   const url = document.getElementById("apiUrl").value.trim();
-  if (!url) {
-    alert("Cole a URL do Web App.");
-    return;
-  }
-  if (!url.includes("/exec")) {
-    alert("A URL parece incorreta. Use a URL do Web App que termina em /exec.");
-    return;
-  }
+  if (!url) { alert("Cole a URL do Web App."); return; }
+  if (!url.includes("/exec")) { alert("A URL parece incorreta. Use a URL terminada em /exec."); return; }
   localStorage.setItem(APIK, url);
   carregar();
-  document.getElementById("status").textContent = "URL salva com sucesso. Agora volte para o sistema e faça login.";
+  document.getElementById("status").textContent = "URL temporária salva neste navegador.";
 }
-
 function limpar() {
   localStorage.removeItem(APIK);
   carregar();
-  document.getElementById("status").textContent = "URL removida.";
+  document.getElementById("status").textContent = "URL temporária removida. O sistema voltará a usar a URL oficial.";
 }
-
 function jsonp(action, params = {}) {
   return new Promise((resolve, reject) => {
-    const api = localStorage.getItem(APIK) || "";
-    if (!api) {
-      reject(new Error("URL não configurada."));
-      return;
-    }
-
     const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    const url = new URL(api);
+    const url = new URL(api());
     url.searchParams.set("action", action);
     url.searchParams.set("callback", callbackName);
     Object.keys(params).forEach(k => url.searchParams.set(k, params[k] ?? ""));
-
     window[callbackName] = (data) => {
       delete window[callbackName];
       script.remove();
       resolve(data);
     };
-
     const script = document.createElement("script");
     script.src = url.toString();
     script.onerror = () => {
@@ -105,10 +83,8 @@ function jsonp(action, params = {}) {
     document.body.appendChild(script);
   });
 }
-
 async function testarSetup() {
   try {
-    salvar();
     const resp = await jsonp("setup");
     document.getElementById("status").textContent = JSON.stringify(resp, null, 2);
   } catch (e) {
