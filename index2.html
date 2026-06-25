@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Configuração +Valor Operacional V5.6</title>
+<title>Configuração +Valor Operacional V5.8</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -18,7 +18,7 @@ button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:wh
 </head>
 <body>
 <header>
-<h2>Configuração +Valor Operacional V5.6</h2>
+<h2>Configuração +Valor Operacional V5.8</h2>
 <div class="muted">URL padrão já embutida no sistema</div>
 </header>
 <main>
@@ -39,7 +39,7 @@ button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:wh
 </div>
 </main>
 <script>
-const APIK = "mv_api_v53";
+const APIK = "mv_api_v58";
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
 function api() { return localStorage.getItem(APIK) || DEFAULT_API_URL; }
 function carregar() {
@@ -73,12 +73,25 @@ function jsonp(action, params = {}) {
       script.remove();
       resolve(data);
     };
+    const timer = setTimeout(() => {
+      delete window[callbackName];
+      if (script && script.parentNode) script.remove();
+      reject(new Error("A API não respondeu. Verifique se a implantação do Apps Script está atualizada."));
+    }, 12000);
+
     const script = document.createElement("script");
     script.src = url.toString();
     script.onerror = () => {
+      clearTimeout(timer);
       delete window[callbackName];
       script.remove();
       reject(new Error("Falha ao acessar o Apps Script."));
+    };
+    window[callbackName] = (data) => {
+      clearTimeout(timer);
+      delete window[callbackName];
+      script.remove();
+      resolve(data);
     };
     document.body.appendChild(script);
   });

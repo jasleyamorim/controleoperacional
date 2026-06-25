@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.6</title>
+<title>+Valor Operacional V5.8</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </head>
 <body>
 <header>
-<h2>+Valor Operacional V5.6</h2>
+<h2>+Valor Operacional V5.8</h2>
 <div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
 </header>
 
@@ -215,7 +215,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <h3>Configuração Master</h3>
 <label>URL Apps Script</label><input id="apiUrl">
 <button class="ok" onclick="salvarConfig()">Salvar URL</button>
-<button class="primary" onclick="rodarSetup()">Testar / Setup V5.6</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.8</button>
 <p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
 </div>
 </section>
@@ -223,8 +223,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
 <script>
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
-const APIK = "mv_api_v53";
-const SESSION = "mv_session_v53";
+const APIK = "mv_api_v58";
+const SESSION = "mv_session_v58";
 let rows = [];
 let currentUser = null;
 let efetivoRows = [];
@@ -271,13 +271,29 @@ function jsonp(action, params = {}) {
       resolve(data);
     };
 
+    const timer = setTimeout(() => {
+      delete window[callbackName];
+      if (script && script.parentNode) script.remove();
+      reject(new Error("A API não respondeu. Verifique se o Code.gs foi salvo, reimplantado como nova versão e se a URL /exec está correta."));
+    }, 12000);
+
     const script = document.createElement("script");
     script.src = url.toString();
     script.onerror = () => {
+      clearTimeout(timer);
       delete window[callbackName];
       script.remove();
       reject(new Error("Falha ao acessar o Apps Script."));
     };
+
+    const originalCallback = window[callbackName];
+    window[callbackName] = (data) => {
+      clearTimeout(timer);
+      delete window[callbackName];
+      script.remove();
+      resolve(data);
+    };
+
     document.body.appendChild(script);
   });
 }
@@ -294,6 +310,7 @@ async function rodarSetup() {
 
 async function entrar() {
   try {
+    document.getElementById("loginStatus").textContent = "Conectando...";
     const resp = await jsonp("login", {
       login: document.getElementById("loginUser").value,
       senha: document.getElementById("loginPass").value
