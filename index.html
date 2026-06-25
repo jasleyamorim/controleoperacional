@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.4</title>
+<title>+Valor Operacional V5.5</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </head>
 <body>
 <header>
-<h2>+Valor Operacional V5.4</h2>
+<h2>+Valor Operacional V5.5</h2>
 <div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
 </header>
 
@@ -90,12 +90,36 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </section>
 
 <section id="meus" class="hide">
-<div class="card"><h3>Resumo dos meus lançamentos até o fechamento</h3><button class="primary" onclick="carregar()">Atualizar</button></div>
-<div class="grid">
-<div class="card"><div class="muted">Meu total pendente</div><div class="kpi" id="meuTotal">R$ 0,00</div></div>
-<div class="card"><div class="muted">Meus registros pendentes</div><div class="kpi" id="meuQtd">0</div></div>
+<div class="card">
+<h3>Resumo dos meus lançamentos</h3>
+<div class="row">
+<div>
+<label>Data do relatório</label>
+<input id="dataRelatorioSupervisor" type="date" onchange="render()">
 </div>
-<div class="card"><h3>Meus lançamentos</h3><table id="tMeus"><thead><tr><th>Data</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+<div>
+<label>Ações</label>
+<button class="primary" onclick="setHojeRelatorio()">HOJE</button>
+<button class="primary" onclick="carregar()">Atualizar</button>
+</div>
+</div>
+<p class="muted">Selecione uma data para ver somente os lançamentos daquele dia.</p>
+</div>
+
+<div class="grid">
+<div class="card"><div class="muted">Meus valores pendentes</div><div class="kpi" id="meuTotal">R$ 0,00</div></div>
+<div class="card"><div class="muted">Meus registros pendentes</div><div class="kpi" id="meuQtd">0</div></div>
+<div class="card"><div class="muted">Meus valores aprovados</div><div class="kpi" id="meuAprovado">R$ 0,00</div></div>
+<div class="card"><div class="muted">Meus valores reprovados</div><div class="kpi" id="meuReprovado">R$ 0,00</div></div>
+</div>
+
+<div class="card">
+<h3>Meus lançamentos do dia</h3>
+<table id="tMeus">
+<thead><tr><th>Data</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
 </section>
 
 <section id="painel" class="hide">
@@ -135,7 +159,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <h3>Configuração Master</h3>
 <label>URL Apps Script</label><input id="apiUrl">
 <button class="ok" onclick="salvarConfig()">Salvar URL</button>
-<button class="primary" onclick="rodarSetup()">Testar / Setup V5.4</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.5</button>
 <p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
 </div>
 </section>
@@ -149,6 +173,7 @@ let rows = [];
 let currentUser = null;
 
 document.getElementById("data").valueAsDate = new Date();
+window.addEventListener("DOMContentLoaded", () => { const dr = document.getElementById("dataRelatorioSupervisor"); if (dr) dr.valueAsDate = new Date(); });
 document.getElementById("apiUrl").value = localStorage.getItem(APIK) || DEFAULT_API_URL;
 
 function api() {
@@ -356,6 +381,12 @@ async function validar(id, status) {
   await carregar();
 }
 
+function setHojeRelatorio() {
+  const input = document.getElementById("dataRelatorioSupervisor");
+  if (input) input.valueAsDate = new Date();
+  render();
+}
+
 function agrupar(campo, arr = rows) {
   const map = {};
   arr.forEach(r => {
@@ -370,11 +401,18 @@ function agrupar(campo, arr = rows) {
 function render() {
   if (!currentUser) return;
 
-  const meus = rows.filter(r => String(r.loginSupervisor).toLowerCase() === String(currentUser.login).toLowerCase());
+  const dataFiltro = document.getElementById("dataRelatorioSupervisor") ? document.getElementById("dataRelatorioSupervisor").value : "";
+  const meusTodos = rows.filter(r => String(r.loginSupervisor).toLowerCase() === String(currentUser.login).toLowerCase());
+  const meus = dataFiltro ? meusTodos.filter(r => String(r.data || "").slice(0, 10) === dataFiltro) : meusTodos;
+
   const pendentes = meus.filter(r => (r.status || "Pendente") === "Pendente");
+  const aprovados = meus.filter(r => (r.status || "Pendente") === "Aprovado");
+  const reprovados = meus.filter(r => (r.status || "Pendente") === "Reprovado");
 
   document.getElementById("meuTotal").textContent = moeda(pendentes.reduce((s, r) => s + Number(r.valor || 0), 0));
   document.getElementById("meuQtd").textContent = pendentes.length;
+  document.getElementById("meuAprovado").textContent = moeda(aprovados.reduce((s, r) => s + Number(r.valor || 0), 0));
+  document.getElementById("meuReprovado").textContent = moeda(reprovados.reduce((s, r) => s + Number(r.valor || 0), 0));
 
   document.querySelector("#tMeus tbody").innerHTML = meus.slice().reverse().map(r =>
     `<tr><td>${r.data || ""}</td><td>${r.condominio || ""}</td><td>${r.categoria || ""}</td><td>${r.situacaoTreinamento || "-"}</td><td>${moeda(r.valor)}</td><td><span class="badge">${r.status || "Pendente"}</span></td></tr>`
