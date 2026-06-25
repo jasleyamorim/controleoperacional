@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.8</title>
+<title>+Valor Operacional V5.9</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </head>
 <body>
 <header>
-<h2>+Valor Operacional V5.8</h2>
+<h2>+Valor Operacional V5.9</h2>
 <div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
 </header>
 
@@ -51,7 +51,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <label>Senha</label>
 <input id="loginPass" type="password" placeholder="1234">
 <button class="ok" onclick="entrar()">Entrar</button>
-<p class="muted">As configurações do sistema ficam disponíveis somente para o usuário Master.</p><p><a href="index2.html" style="color:#93c5fd">Configurar URL do Web App</a></p>
+<button class="primary" onclick="testarApiLogin()">Testar API</button>
+<button class="danger" onclick="limparCacheSistema()">Limpar cache</button>
+<p class="muted">As configurações do sistema ficam disponíveis somente para o usuário Master.</p><p class="muted">Versão V5.9: login com diagnóstico de API.</p><p><a href="index2.html" style="color:#93c5fd">Configurar URL do Web App</a></p>
 <div id="loginStatus" class="muted"></div>
 </div>
 </section>
@@ -215,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <h3>Configuração Master</h3>
 <label>URL Apps Script</label><input id="apiUrl">
 <button class="ok" onclick="salvarConfig()">Salvar URL</button>
-<button class="primary" onclick="rodarSetup()">Testar / Setup V5.8</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.9</button>
 <p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
 </div>
 </section>
@@ -223,8 +225,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
 <script>
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
-const APIK = "mv_api_v58";
-const SESSION = "mv_session_v58";
+const APIK = "mv_api_v59";
+const SESSION = "mv_session_v59";
 let rows = [];
 let currentUser = null;
 let efetivoRows = [];
@@ -254,48 +256,72 @@ function num(v) {
 
 function jsonp(action, params = {}) {
   return new Promise((resolve, reject) => {
-    if (!api()) {
-      reject(new Error("URL do Apps Script não configurada. Entre como Master e configure a URL."));
+    const apiUrl = api();
+    if (!apiUrl) {
+      reject(new Error("URL do Apps Script não configurada."));
       return;
     }
 
-    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    const url = new URL(api());
-    url.searchParams.set("action", action);
-    url.searchParams.set("callback", callbackName);
-    Object.keys(params).forEach(k => url.searchParams.set(k, params[k] ?? ""));
+    const callbackName = "mvCallback_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+    const requestUrl = new URL(apiUrl);
+    requestUrl.searchParams.set("action", action);
+    requestUrl.searchParams.set("callback", callbackName);
+    requestUrl.searchParams.set("_cache", String(Date.now()));
+    Object.keys(params).forEach(k => requestUrl.searchParams.set(k, params[k] ?? ""));
 
-    window[callbackName] = (data) => {
-      delete window[callbackName];
-      script.remove();
-      resolve(data);
+    let script = document.createElement("script");
+    let done = false;
+
+    const cleanup = () => {
+      if (script && script.parentNode) script.parentNode.removeChild(script);
+      try { delete window[callbackName]; } catch(e) { window[callbackName] = undefined; }
     };
 
     const timer = setTimeout(() => {
-      delete window[callbackName];
-      if (script && script.parentNode) script.remove();
-      reject(new Error("A API não respondeu. Verifique se o Code.gs foi salvo, reimplantado como nova versão e se a URL /exec está correta."));
-    }, 12000);
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error("A API não respondeu em 15 segundos. Verifique se o Apps Script foi reimplantado como App da Web e se a URL /exec está correta."));
+    }, 15000);
 
-    const script = document.createElement("script");
-    script.src = url.toString();
-    script.onerror = () => {
+    window[callbackName] = (data) => {
+      if (done) return;
+      done = true;
       clearTimeout(timer);
-      delete window[callbackName];
-      script.remove();
-      reject(new Error("Falha ao acessar o Apps Script."));
+      cleanup();
+      resolve(data);
     };
 
-    const originalCallback = window[callbackName];
-    window[callbackName] = (data) => {
+    script.async = true;
+    script.src = requestUrl.toString();
+    script.onerror = () => {
+      if (done) return;
+      done = true;
       clearTimeout(timer);
-      delete window[callbackName];
-      script.remove();
-      resolve(data);
+      cleanup();
+      reject(new Error("Falha ao carregar o script da API."));
     };
 
     document.body.appendChild(script);
   });
+}
+
+async function testarApiLogin() {
+  const status = document.getElementById("loginStatus");
+  status.textContent = "Testando API...";
+  try {
+    const resp = await jsonp("setup");
+    status.textContent = resp.ok ? ("API OK: " + (resp.message || "conectada")) : ("Erro API: " + (resp.error || JSON.stringify(resp)));
+  } catch (e) {
+    status.textContent = "Erro API: " + e.message;
+  }
+}
+
+function limparCacheSistema() {
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith("mv_api_") || k.startsWith("mv_session_")) localStorage.removeItem(k);
+  });
+  document.getElementById("loginStatus").textContent = "Cache limpo. Recarregue a página e tente novamente.";
 }
 
 async function rodarSetup() {
@@ -309,24 +335,30 @@ async function rodarSetup() {
 }
 
 async function entrar() {
+  const status = document.getElementById("loginStatus");
   try {
-    document.getElementById("loginStatus").textContent = "Conectando...";
+    status.textContent = "Conectando...";
     const resp = await jsonp("login", {
-      login: document.getElementById("loginUser").value,
+      login: document.getElementById("loginUser").value.trim(),
       senha: document.getElementById("loginPass").value
     });
 
-    if (!resp.ok) {
-      document.getElementById("loginStatus").textContent = resp.error || "Falha no login.";
+    if (!resp || !resp.ok) {
+      status.textContent = (resp && resp.error) ? resp.error : "Falha no login.";
       return;
     }
 
     currentUser = resp.user;
     localStorage.setItem(SESSION, JSON.stringify(currentUser));
+    status.textContent = "Login aprovado. Carregando sistema...";
     iniciarSessao();
-    await carregar();
+
+    carregar().catch(e => {
+      const s = document.getElementById("status");
+      if (s) s.textContent = "Login feito, mas houve erro ao carregar dados: " + e.message;
+    });
   } catch (e) {
-    document.getElementById("loginStatus").textContent = "Erro: " + e.message;
+    status.textContent = "Erro: " + e.message;
   }
 }
 
