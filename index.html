@@ -3,26 +3,423 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.2</title>
+<title>+Valor Operacional V5.3</title>
 <style>
-body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}header{padding:16px;background:#020617}nav{display:flex;gap:8px;overflow:auto;padding:10px;background:#111827}button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:white;font-weight:700;cursor:pointer}button.active,.ok{background:#22c55e;color:#052e16}.primary{background:#2563eb}.danger{background:#ef4444}.warn{background:#f59e0b;color:#111827}main{padding:14px;max-width:1150px;margin:auto}.card{background:#111827;border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:12px}label{display:block;color:#94a3b8;font-size:13px;margin-top:10px}input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:white;box-sizing:border-box}textarea{min-height:70px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hide{display:none}.kpi{font-size:24px;font-weight:800}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #334155;padding:8px;text-align:left;vertical-align:top}.muted{color:#94a3b8}.badge{padding:4px 8px;border-radius:999px;background:#1e293b;font-size:12px}@media(max-width:650px){.row{grid-template-columns:1fr}}
+body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
+header{padding:16px;background:#020617}
+nav{display:flex;gap:8px;overflow:auto;padding:10px;background:#111827}
+button{border:0;border-radius:10px;padding:10px 12px;background:#1e293b;color:white;font-weight:700;cursor:pointer}
+button.active,.ok{background:#22c55e;color:#052e16}.primary{background:#2563eb}.danger{background:#ef4444}.warn{background:#f59e0b;color:#111827}
+main{padding:14px;max-width:1150px;margin:auto}
+.card{background:#111827;border:1px solid #334155;border-radius:14px;padding:14px;margin-bottom:12px}
+label{display:block;color:#94a3b8;font-size:13px;margin-top:10px}
+input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:white;box-sizing:border-box}
+textarea{min-height:70px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.hide{display:none}.kpi{font-size:24px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #334155;padding:8px;text-align:left;vertical-align:top}
+.muted{color:#94a3b8}.badge{padding:4px 8px;border-radius:999px;background:#1e293b;font-size:12px}
+@media(max-width:650px){.row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header><h2>+Valor Operacional V5.2</h2><div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div></header>
-<nav id="nav" class="hide"><button id="b-lancar" class="active" onclick="show('lancar')">Lançar</button><button id="b-meus" onclick="show('meus')">Meus lançamentos</button><button id="b-painel" onclick="show('painel')" class="masterOnly">Painel Master</button><button id="b-validacao" onclick="show('validacao')" class="masterOnly">Validação</button><button id="b-treinamentos" onclick="show('treinamentos')" class="masterOnly">Treinamentos</button><button id="b-usuarios" onclick="show('usuarios')" class="masterOnly">Usuários</button><button id="b-config" onclick="show('config')" class="masterOnly">Config</button><button class="danger" onclick="logout()">Sair</button></nav>
+<header>
+<h2>+Valor Operacional V5.3</h2>
+<div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
+</header>
+
+<nav id="nav" class="hide">
+<button id="b-lancar" class="active" onclick="show('lancar')">Lançar</button>
+<button id="b-meus" onclick="show('meus')">Meus lançamentos</button>
+<button id="b-painel" onclick="show('painel')" class="masterOnly">Painel Master</button>
+<button id="b-validacao" onclick="show('validacao')" class="masterOnly">Validação</button>
+<button id="b-treinamentos" onclick="show('treinamentos')" class="masterOnly">Treinamentos</button>
+<button id="b-usuarios" onclick="show('usuarios')" class="masterOnly">Usuários</button>
+<button id="b-config" onclick="show('config')" class="masterOnly">Config</button>
+<button class="danger" onclick="logout()">Sair</button>
+</nav>
+
 <main>
-<section id="login"><div class="card"><h3>Acesso ao sistema</h3><label>URL do Web App Google Sheets</label><input id="apiUrlLogin" placeholder="Cole a URL terminada em /exec"><label>Login</label><input id="loginUser" placeholder="master"><label>Senha</label><input id="loginPass" type="password" placeholder="1234"><button class="ok" onclick="entrar()">Entrar</button><button class="primary" onclick="salvarApiLogin()">Salvar URL</button><button class="warn" onclick="rodarSetup()">Setup</button><p class="muted">Primeiro acesso: clique em Setup e depois use master / 1234.</p><div id="loginStatus" class="muted"></div></div></section>
-<section id="lancar" class="hide"><div class="card"><h3>Novo lançamento</h3><div class="row"><div><label>Supervisor</label><input id="supervisor" readonly></div><div><label>Data</label><input id="data" type="date"></div></div><div class="row"><div><label>Posto/Condomínio</label><input id="condominio"></div><div><label>Empresa</label><select id="empresa"><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div></div><div class="row"><div><label>Origem</label><input id="origem"></div><div><label>Quem cobriu / candidato / executor</label><input id="executor"></div></div><div class="row"><div><label>Categoria</label><select id="categoria" onchange="toggleTreinamento()"><option>Falta</option><option>Atestado</option><option>Férias</option><option>Licença maternidade</option><option>Falta de efetivo</option><option>Cobertura</option><option>Dobra</option><option>Treinamento</option><option>Vigia</option><option>Supervisão</option><option>Transporte/Uber</option><option>Material/Insumo</option><option>Serviço extra</option></select></div><div><label>Valor R$</label><input id="valor" inputmode="decimal"></div></div><div id="boxTreinamento" class="hide"><div class="row"><div><label>Situação do treinamento</label><select id="situacaoTreinamento" onchange="toggleMotivoReprovacao()"><option>Em avaliação</option><option>Aprovado</option><option>Reprovado</option></select></div><div id="boxMotivo" class="hide"><label>Motivo da reprovação</label><select id="motivoReprovacaoTreinamento"><option>Baixa produtividade</option><option>Falta de postura</option><option>Não se adaptou ao posto</option><option>Ausência</option><option>Desistência</option><option>Outro</option></select></div></div></div><div class="row"><div><label>Tipo de custo</label><select id="tipoCusto"><option>Não reembolsável</option><option>Reembolsável</option><option>Parcialmente reembolsável</option><option>A definir</option></select></div><div><label>Responsável custo</label><select id="responsavelCusto"><option>Empresa</option><option>Condomínio</option><option>Administradora</option><option>Compartilhado</option><option>A definir</option></select></div></div><label>Observação</label><textarea id="obs"></textarea><button class="ok" onclick="salvarLancamento()">Salvar lançamento</button><div id="status" class="muted" style="margin-top:10px"></div></div></section>
-<section id="meus" class="hide"><div class="card"><h3>Resumo dos meus lançamentos até o fechamento</h3><button class="primary" onclick="carregar()">Atualizar</button></div><div class="grid"><div class="card"><div class="muted">Meu total pendente</div><div class="kpi" id="meuTotal">R$ 0,00</div></div><div class="card"><div class="muted">Meus registros pendentes</div><div class="kpi" id="meuQtd">0</div></div></div><div class="card"><h3>Meus lançamentos</h3><table id="tMeus"><thead><tr><th>Data</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th></tr></thead><tbody></tbody></table></div></section>
-<section id="painel" class="hide"><div class="card"><button class="primary" onclick="carregar()">Atualizar da planilha</button></div><div class="grid"><div class="card"><div class="muted">Total geral</div><div class="kpi" id="kpiTotal">R$ 0,00</div></div><div class="card"><div class="muted">Registros</div><div class="kpi" id="kpiQtd">0</div></div><div class="card"><div class="muted">Maior empresa</div><div class="kpi" id="kpiEmp">-</div></div></div><div class="card"><h3>Por empresa</h3><table id="tEmpresa"><thead><tr><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div><div class="card"><h3>Por supervisor</h3><table id="tSupervisor"><thead><tr><th>Supervisor</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div><div class="card"><h3>Por posto</h3><table id="tPosto"><thead><tr><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div></section>
-<section id="validacao" class="hide"><div class="card"><h3>Validação dos lançamentos</h3><button class="primary" onclick="carregar()">Atualizar</button></div><div class="card"><table id="tValidacao"><thead><tr><th>Data</th><th>Supervisor</th><th>Empresa</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead><tbody></tbody></table></div></section>
-<section id="treinamentos" class="hide"><div class="card"><h3>Histórico de treinamentos</h3><button class="primary" onclick="carregar()">Atualizar</button></div><div class="card"><table id="tTreinamentos"><thead><tr><th>Data</th><th>Supervisor</th><th>Posto</th><th>Candidato</th><th>Situação</th><th>Motivo</th><th>Valor</th></tr></thead><tbody></tbody></table></div></section>
-<section id="usuarios" class="hide"><div class="card"><h3>Criar acesso</h3><div class="row"><div><label>Nome</label><input id="novoNome"></div><div><label>Login</label><input id="novoLogin"></div></div><div class="row"><div><label>Senha</label><input id="novaSenha"></div><div><label>Perfil</label><select id="novoPerfil"><option>SUPERVISOR</option><option>MASTER</option></select></div></div><button class="ok" onclick="criarUsuario()">Criar usuário</button></div></section>
-<section id="config" class="hide"><div class="card"><h3>Configuração</h3><label>URL Apps Script</label><input id="apiUrl"><button class="ok" onclick="salvarConfig()">Salvar URL</button><button class="primary" onclick="rodarSetup()">Testar / Setup V5.2</button></div></section>
+<section id="login">
+<div class="card">
+<h3>Acesso ao sistema</h3>
+<label>Login</label>
+<input id="loginUser" placeholder="master">
+<label>Senha</label>
+<input id="loginPass" type="password" placeholder="1234">
+<button class="ok" onclick="entrar()">Entrar</button>
+<p class="muted">As configurações do sistema ficam disponíveis somente para o usuário Master.</p>
+<div id="loginStatus" class="muted"></div>
+</div>
+</section>
+
+<section id="lancar" class="hide">
+<div class="card">
+<h3>Novo lançamento</h3>
+<div class="row">
+<div><label>Supervisor</label><input id="supervisor" readonly></div>
+<div><label>Data</label><input id="data" type="date"></div>
+</div>
+<div class="row">
+<div><label>Posto/Condomínio</label><input id="condominio"></div>
+<div><label>Empresa</label><select id="empresa"><option>Mais Valor Terceirização</option><option>Mais Valor Construção</option><option>Tecnofoco Terceirização</option><option>Tecnofoco Construção</option></select></div>
+</div>
+<div class="row">
+<div><label>Origem</label><input id="origem"></div>
+<div><label>Quem cobriu / candidato / executor</label><input id="executor"></div>
+</div>
+<div class="row">
+<div><label>Categoria</label><select id="categoria" onchange="toggleTreinamento()"><option>Falta</option><option>Atestado</option><option>Férias</option><option>Licença maternidade</option><option>Falta de efetivo</option><option>Cobertura</option><option>Dobra</option><option>Treinamento</option><option>Vigia</option><option>Supervisão</option><option>Transporte/Uber</option><option>Material/Insumo</option><option>Serviço extra</option></select></div>
+<div><label>Valor R$</label><input id="valor" inputmode="decimal"></div>
+</div>
+
+<div id="boxTreinamento" class="hide">
+<div class="row">
+<div><label>Situação do treinamento</label><select id="situacaoTreinamento" onchange="toggleMotivoReprovacao()"><option>Em avaliação</option><option>Aprovado</option><option>Reprovado</option></select></div>
+<div id="boxMotivo" class="hide"><label>Motivo da reprovação</label><select id="motivoReprovacaoTreinamento"><option>Baixa produtividade</option><option>Falta de postura</option><option>Não se adaptou ao posto</option><option>Ausência</option><option>Desistência</option><option>Outro</option></select></div>
+</div>
+</div>
+
+<div class="row">
+<div><label>Tipo de custo</label><select id="tipoCusto"><option>Não reembolsável</option><option>Reembolsável</option><option>Parcialmente reembolsável</option><option>A definir</option></select></div>
+<div><label>Responsável custo</label><select id="responsavelCusto"><option>Empresa</option><option>Condomínio</option><option>Administradora</option><option>Compartilhado</option><option>A definir</option></select></div>
+</div>
+<label>Observação</label><textarea id="obs"></textarea>
+<button class="ok" onclick="salvarLancamento()">Salvar lançamento</button>
+<div id="status" class="muted" style="margin-top:10px"></div>
+</div>
+</section>
+
+<section id="meus" class="hide">
+<div class="card"><h3>Resumo dos meus lançamentos até o fechamento</h3><button class="primary" onclick="carregar()">Atualizar</button></div>
+<div class="grid">
+<div class="card"><div class="muted">Meu total pendente</div><div class="kpi" id="meuTotal">R$ 0,00</div></div>
+<div class="card"><div class="muted">Meus registros pendentes</div><div class="kpi" id="meuQtd">0</div></div>
+</div>
+<div class="card"><h3>Meus lançamentos</h3><table id="tMeus"><thead><tr><th>Data</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="painel" class="hide">
+<div class="card"><button class="primary" onclick="carregar()">Atualizar da planilha</button></div>
+<div class="grid">
+<div class="card"><div class="muted">Total geral</div><div class="kpi" id="kpiTotal">R$ 0,00</div></div>
+<div class="card"><div class="muted">Registros</div><div class="kpi" id="kpiQtd">0</div></div>
+<div class="card"><div class="muted">Maior empresa</div><div class="kpi" id="kpiEmp">-</div></div>
+</div>
+<div class="card"><h3>Por empresa</h3><table id="tEmpresa"><thead><tr><th>Empresa</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h3>Por supervisor</h3><table id="tSupervisor"><thead><tr><th>Supervisor</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><h3>Por posto</h3><table id="tPosto"><thead><tr><th>Posto</th><th>Valor</th><th>Registros</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="validacao" class="hide">
+<div class="card"><h3>Validação dos lançamentos</h3><button class="primary" onclick="carregar()">Atualizar</button></div>
+<div class="card"><table id="tValidacao"><thead><tr><th>Data</th><th>Supervisor</th><th>Empresa</th><th>Posto</th><th>Categoria</th><th>Treinamento</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="treinamentos" class="hide">
+<div class="card"><h3>Histórico de treinamentos</h3><button class="primary" onclick="carregar()">Atualizar</button></div>
+<div class="card"><table id="tTreinamentos"><thead><tr><th>Data</th><th>Supervisor</th><th>Posto</th><th>Candidato</th><th>Situação</th><th>Motivo</th><th>Valor</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section id="usuarios" class="hide">
+<div class="card">
+<h3>Criar acesso</h3>
+<div class="row"><div><label>Nome</label><input id="novoNome"></div><div><label>Login</label><input id="novoLogin"></div></div>
+<div class="row"><div><label>Senha</label><input id="novaSenha"></div><div><label>Perfil</label><select id="novoPerfil"><option>SUPERVISOR</option><option>MASTER</option></select></div></div>
+<button class="ok" onclick="criarUsuario()">Criar usuário</button>
+<div id="usuarioStatus" class="muted" style="margin-top:10px"></div>
+</div>
+</section>
+
+<section id="config" class="hide">
+<div class="card">
+<h3>Configuração Master</h3>
+<label>URL Apps Script</label><input id="apiUrl">
+<button class="ok" onclick="salvarConfig()">Salvar URL</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.3</button>
+<p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
+</div>
+</section>
 </main>
+
 <script>
-const APIK="mv_api_v52",SESSION="mv_session_v52";let rows=[],currentUser=null;document.getElementById("data").valueAsDate=new Date();document.getElementById("apiUrlLogin").value=localStorage.getItem(APIK)||"";document.getElementById("apiUrl").value=localStorage.getItem(APIK)||"";function api(){return(localStorage.getItem(APIK)||"").trim()}function salvarApiLogin(){localStorage.setItem(APIK,document.getElementById("apiUrlLogin").value.trim());document.getElementById("apiUrl").value=document.getElementById("apiUrlLogin").value.trim();alert("URL salva.")}function salvarConfig(){localStorage.setItem(APIK,document.getElementById("apiUrl").value.trim());document.getElementById("apiUrlLogin").value=document.getElementById("apiUrl").value.trim();alert("URL salva.")}function moeda(n){return Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}function num(v){return Number(String(v||"0").replace(/\./g,"").replace(",","."))||0}function jsonp(action,params={}){return new Promise((resolve,reject)=>{if(!api()){reject(new Error("URL do Apps Script não configurada."));return}const cb="cb_"+Date.now()+"_"+Math.floor(Math.random()*1e5);const url=new URL(api());url.searchParams.set("action",action);url.searchParams.set("callback",cb);Object.keys(params).forEach(k=>url.searchParams.set(k,params[k]??""));window[cb]=data=>{delete window[cb];script.remove();resolve(data)};const script=document.createElement("script");script.src=url.toString();script.onerror=()=>{delete window[cb];script.remove();reject(new Error("Falha ao acessar o Apps Script."))};document.body.appendChild(script)})}async function postNoCors(payload){if(!api())throw new Error("URL do Apps Script não configurada.");await fetch(api(),{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)});return{ok:true}}async function rodarSetup(){try{salvarApiLogin();const r=await jsonp("setup");alert(r.message||JSON.stringify(r))}catch(e){alert("Erro no setup: "+e.message)}}async function entrar(){try{salvarApiLogin();const r=await jsonp("login",{login:document.getElementById("loginUser").value,senha:document.getElementById("loginPass").value});if(!r.ok){document.getElementById("loginStatus").textContent=r.error||"Falha no login.";return}currentUser=r.user;localStorage.setItem(SESSION,JSON.stringify(currentUser));iniciarSessao();await carregar()}catch(e){document.getElementById("loginStatus").textContent="Erro: "+e.message}}function iniciarSessao(){document.getElementById("login").classList.add("hide");document.getElementById("nav").classList.remove("hide");document.getElementById("userBar").textContent=`Logado: ${currentUser.nome} | Perfil: ${currentUser.perfil}`;document.getElementById("supervisor").value=currentUser.nome;const master=currentUser.perfil==="MASTER";document.querySelectorAll(".masterOnly").forEach(x=>x.style.display=master?"inline-block":"none");show("lancar")}function logout(){localStorage.removeItem(SESSION);location.reload()}function show(id){if(currentUser&&currentUser.perfil!=="MASTER"&&!["lancar","meus"].includes(id))id="lancar";["lancar","meus","painel","validacao","treinamentos","usuarios","config"].forEach(x=>document.getElementById(x).classList.add("hide"));["b-lancar","b-meus","b-painel","b-validacao","b-treinamentos","b-usuarios","b-config"].forEach(x=>{const el=document.getElementById(x);if(el)el.classList.remove("active")});document.getElementById(id).classList.remove("hide");const btn=document.getElementById("b-"+id);if(btn)btn.classList.add("active");render()}function toggleTreinamento(){const isT=document.getElementById("categoria").value==="Treinamento";document.getElementById("boxTreinamento").classList.toggle("hide",!isT);toggleMotivoReprovacao()}function toggleMotivoReprovacao(){const show=document.getElementById("categoria").value==="Treinamento"&&document.getElementById("situacaoTreinamento").value==="Reprovado";document.getElementById("boxMotivo").classList.toggle("hide",!show)}async function carregar(){const r=await jsonp("lancamentos",{user:currentUser.login,role:currentUser.perfil});rows=Array.isArray(r)?r:[];rows=rows.map(x=>({...x,valor:Number(String(x.valor||0).replace(",","."))||0}));render()}async function salvarLancamento(){const categoria=document.getElementById("categoria").value;const situacao=document.getElementById("situacaoTreinamento").value;if(categoria==="Treinamento"&&situacao==="Reprovado"&&!document.getElementById("motivoReprovacaoTreinamento").value){alert("Informe o motivo da reprovação.");return}const item={id:String(Date.now()),criadoEm:new Date().toISOString(),data:document.getElementById("data").value,supervisor:currentUser.nome,loginSupervisor:currentUser.login,empresa:document.getElementById("empresa").value,condominio:document.getElementById("condominio").value,origem:document.getElementById("origem").value,executor:document.getElementById("executor").value,categoria,valor:num(document.getElementById("valor").value),tipoCusto:document.getElementById("tipoCusto").value,responsavelCusto:document.getElementById("responsavelCusto").value,situacaoTreinamento:categoria==="Treinamento"?situacao:"",motivoReprovacaoTreinamento:categoria==="Treinamento"&&situacao==="Reprovado"?document.getElementById("motivoReprovacaoTreinamento").value:"",status:"Pendente",validadoPor:"",dataValidacao:"",obs:document.getElementById("obs").value};if(!item.data||!item.condominio||!item.valor){alert("Preencha data, posto e valor.");return}await postNoCors({action:"add_lancamento",item});document.getElementById("status").textContent="Lançamento enviado para a planilha. Clique em atualizar para confirmar.";["condominio","origem","executor","valor","obs"].forEach(id=>document.getElementById(id).value="");setTimeout(carregar,1200)}function agrupar(campo,arr=rows){const map={};arr.forEach(r=>{const k=r[campo]||"Não informado";if(!map[k])map[k]={valor:0,qtd:0};map[k].valor+=Number(r.valor||0);map[k].qtd++});return Object.entries(map).sort((a,b)=>b[1].valor-a[1].valor)}function render(){if(!currentUser)return;const meus=rows.filter(r=>String(r.loginSupervisor).toLowerCase()===String(currentUser.login).toLowerCase());const pend=meus.filter(r=>(r.status||"Pendente")==="Pendente");document.getElementById("meuTotal").textContent=moeda(pend.reduce((s,r)=>s+Number(r.valor||0),0));document.getElementById("meuQtd").textContent=pend.length;document.querySelector("#tMeus tbody").innerHTML=meus.slice().reverse().map(r=>`<tr><td>${r.data||""}</td><td>${r.condominio||""}</td><td>${r.categoria||""}</td><td>${r.situacaoTreinamento||"-"}</td><td>${moeda(r.valor)}</td><td><span class="badge">${r.status||"Pendente"}</span></td></tr>`).join("");if(currentUser.perfil!=="MASTER")return;const total=rows.reduce((s,r)=>s+Number(r.valor||0),0);document.getElementById("kpiTotal").textContent=moeda(total);document.getElementById("kpiQtd").textContent=rows.length;const emp=agrupar("empresa"),sup=agrupar("supervisor"),posto=agrupar("condominio");document.getElementById("kpiEmp").textContent=emp[0]?emp[0][0]:"-";document.querySelector("#tEmpresa tbody").innerHTML=emp.map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join("");document.querySelector("#tSupervisor tbody").innerHTML=sup.map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join("");document.querySelector("#tPosto tbody").innerHTML=posto.map(([k,v])=>`<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`).join("");document.querySelector("#tValidacao tbody").innerHTML=rows.slice().reverse().map(r=>`<tr><td>${r.data||""}</td><td>${r.supervisor||""}</td><td>${r.empresa||""}</td><td>${r.condominio||""}</td><td>${r.categoria||""}</td><td>${r.situacaoTreinamento||"-"}</td><td>${moeda(r.valor)}</td><td>${r.status||"Pendente"}</td><td><button class="ok" onclick="validar('${r.id}','Aprovado')">Aprovar</button> <button class="danger" onclick="validar('${r.id}','Reprovado')">Reprovar</button></td></tr>`).join("");const trein=rows.filter(r=>r.categoria==="Treinamento");document.querySelector("#tTreinamentos tbody").innerHTML=trein.slice().reverse().map(r=>`<tr><td>${r.data||""}</td><td>${r.supervisor||""}</td><td>${r.condominio||""}</td><td>${r.executor||""}</td><td>${r.situacaoTreinamento||"-"}</td><td>${r.motivoReprovacaoTreinamento||"-"}</td><td>${moeda(r.valor)}</td></tr>`).join("")}async function validar(id,status){await postNoCors({action:"validar_lancamento",id,status,validadoPor:currentUser.nome});setTimeout(carregar,1200)}async function criarUsuario(){const item={id:String(Date.now()),nome:document.getElementById("novoNome").value,login:document.getElementById("novoLogin").value,senha:document.getElementById("novaSenha").value,perfil:document.getElementById("novoPerfil").value,ativo:"SIM"};if(!item.nome||!item.login||!item.senha){alert("Preencha nome, login e senha.");return}await postNoCors({action:"add_usuario",item});alert("Usuário enviado para criação. Aguarde alguns segundos e teste o login.")}const saved=localStorage.getItem(SESSION);if(saved){currentUser=JSON.parse(saved);iniciarSessao();carregar()}
+const DEFAULT_API_URL = "";
+const APIK = "mv_api_v53";
+const SESSION = "mv_session_v53";
+let rows = [];
+let currentUser = null;
+
+document.getElementById("data").valueAsDate = new Date();
+document.getElementById("apiUrl").value = localStorage.getItem(APIK) || DEFAULT_API_URL;
+
+function api() {
+  return (localStorage.getItem(APIK) || DEFAULT_API_URL || "").trim();
+}
+
+function salvarConfig() {
+  localStorage.setItem(APIK, document.getElementById("apiUrl").value.trim());
+  alert("URL salva.");
+}
+
+function moeda(n) {
+  return Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function num(v) {
+  return Number(String(v || "0").replace(/\./g, "").replace(",", ".")) || 0;
+}
+
+function jsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    if (!api()) {
+      reject(new Error("URL do Apps Script não configurada. Entre como Master e configure a URL."));
+      return;
+    }
+
+    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    const url = new URL(api());
+    url.searchParams.set("action", action);
+    url.searchParams.set("callback", callbackName);
+    Object.keys(params).forEach(k => url.searchParams.set(k, params[k] ?? ""));
+
+    window[callbackName] = (data) => {
+      delete window[callbackName];
+      script.remove();
+      resolve(data);
+    };
+
+    const script = document.createElement("script");
+    script.src = url.toString();
+    script.onerror = () => {
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("Falha ao acessar o Apps Script."));
+    };
+    document.body.appendChild(script);
+  });
+}
+
+async function rodarSetup() {
+  try {
+    salvarConfig();
+    const resp = await jsonp("setup");
+    alert(resp.message || JSON.stringify(resp));
+  } catch (e) {
+    alert("Erro no setup: " + e.message);
+  }
+}
+
+async function entrar() {
+  try {
+    const resp = await jsonp("login", {
+      login: document.getElementById("loginUser").value,
+      senha: document.getElementById("loginPass").value
+    });
+
+    if (!resp.ok) {
+      document.getElementById("loginStatus").textContent = resp.error || "Falha no login.";
+      return;
+    }
+
+    currentUser = resp.user;
+    localStorage.setItem(SESSION, JSON.stringify(currentUser));
+    iniciarSessao();
+    await carregar();
+  } catch (e) {
+    document.getElementById("loginStatus").textContent = "Erro: " + e.message;
+  }
+}
+
+function iniciarSessao() {
+  document.getElementById("login").classList.add("hide");
+  document.getElementById("nav").classList.remove("hide");
+  document.getElementById("userBar").textContent = `Logado: ${currentUser.nome} | Perfil: ${currentUser.perfil}`;
+  document.getElementById("supervisor").value = currentUser.nome;
+  const master = currentUser.perfil === "MASTER";
+  document.querySelectorAll(".masterOnly").forEach(x => x.style.display = master ? "inline-block" : "none");
+  show("lancar");
+}
+
+function logout() {
+  localStorage.removeItem(SESSION);
+  location.reload();
+}
+
+function show(id) {
+  if (currentUser && currentUser.perfil !== "MASTER" && !["lancar", "meus"].includes(id)) id = "lancar";
+
+  ["lancar","meus","painel","validacao","treinamentos","usuarios","config"].forEach(x => document.getElementById(x).classList.add("hide"));
+  ["b-lancar","b-meus","b-painel","b-validacao","b-treinamentos","b-usuarios","b-config"].forEach(x => {
+    const el = document.getElementById(x);
+    if (el) el.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.remove("hide");
+  const btn = document.getElementById("b-" + id);
+  if (btn) btn.classList.add("active");
+  render();
+}
+
+function toggleTreinamento() {
+  const isTreinamento = document.getElementById("categoria").value === "Treinamento";
+  document.getElementById("boxTreinamento").classList.toggle("hide", !isTreinamento);
+  toggleMotivoReprovacao();
+}
+
+function toggleMotivoReprovacao() {
+  const showMotivo =
+    document.getElementById("categoria").value === "Treinamento" &&
+    document.getElementById("situacaoTreinamento").value === "Reprovado";
+  document.getElementById("boxMotivo").classList.toggle("hide", !showMotivo);
+}
+
+async function carregar() {
+  const resp = await jsonp("lancamentos", { user: currentUser.login, role: currentUser.perfil });
+  rows = Array.isArray(resp) ? resp : [];
+  rows = rows.map(x => ({ ...x, valor: Number(String(x.valor || 0).replace(",", ".")) || 0 }));
+  render();
+}
+
+async function salvarLancamento() {
+  const categoria = document.getElementById("categoria").value;
+  const situacao = document.getElementById("situacaoTreinamento").value;
+
+  if (categoria === "Treinamento" && situacao === "Reprovado" && !document.getElementById("motivoReprovacaoTreinamento").value) {
+    alert("Informe o motivo da reprovação.");
+    return;
+  }
+
+  const item = {
+    id: String(Date.now()),
+    criadoEm: new Date().toISOString(),
+    data: document.getElementById("data").value,
+    supervisor: currentUser.nome,
+    loginSupervisor: currentUser.login,
+    empresa: document.getElementById("empresa").value,
+    condominio: document.getElementById("condominio").value,
+    origem: document.getElementById("origem").value,
+    executor: document.getElementById("executor").value,
+    categoria,
+    valor: num(document.getElementById("valor").value),
+    tipoCusto: document.getElementById("tipoCusto").value,
+    responsavelCusto: document.getElementById("responsavelCusto").value,
+    situacaoTreinamento: categoria === "Treinamento" ? situacao : "",
+    motivoReprovacaoTreinamento: categoria === "Treinamento" && situacao === "Reprovado" ? document.getElementById("motivoReprovacaoTreinamento").value : "",
+    status: "Pendente",
+    validadoPor: "",
+    dataValidacao: "",
+    obs: document.getElementById("obs").value
+  };
+
+  if (!item.data || !item.condominio || !item.valor) {
+    alert("Preencha data, posto e valor.");
+    return;
+  }
+
+  const resp = await jsonp("add_lancamento", { payload: encodeURIComponent(JSON.stringify(item)) });
+  if (!resp.ok) {
+    document.getElementById("status").textContent = resp.error || "Erro ao salvar.";
+    return;
+  }
+
+  document.getElementById("status").textContent = "Lançamento salvo e enviado para validação.";
+  ["condominio","origem","executor","valor","obs"].forEach(id => document.getElementById(id).value = "");
+  await carregar();
+}
+
+async function criarUsuario() {
+  const item = {
+    id: String(Date.now()),
+    nome: document.getElementById("novoNome").value,
+    login: document.getElementById("novoLogin").value,
+    senha: document.getElementById("novaSenha").value,
+    perfil: document.getElementById("novoPerfil").value,
+    ativo: "SIM"
+  };
+
+  if (!item.nome || !item.login || !item.senha) {
+    alert("Preencha nome, login e senha.");
+    return;
+  }
+
+  const resp = await jsonp("add_usuario", { payload: encodeURIComponent(JSON.stringify(item)) });
+  document.getElementById("usuarioStatus").textContent = resp.message || resp.error || JSON.stringify(resp);
+
+  if (resp.ok) {
+    document.getElementById("novoNome").value = "";
+    document.getElementById("novoLogin").value = "";
+    document.getElementById("novaSenha").value = "";
+  }
+}
+
+async function validar(id, status) {
+  await jsonp("validar_lancamento", { id, status, validadoPor: currentUser.nome });
+  await carregar();
+}
+
+function agrupar(campo, arr = rows) {
+  const map = {};
+  arr.forEach(r => {
+    const k = r[campo] || "Não informado";
+    if (!map[k]) map[k] = { valor: 0, qtd: 0 };
+    map[k].valor += Number(r.valor || 0);
+    map[k].qtd++;
+  });
+  return Object.entries(map).sort((a, b) => b[1].valor - a[1].valor);
+}
+
+function render() {
+  if (!currentUser) return;
+
+  const meus = rows.filter(r => String(r.loginSupervisor).toLowerCase() === String(currentUser.login).toLowerCase());
+  const pendentes = meus.filter(r => (r.status || "Pendente") === "Pendente");
+
+  document.getElementById("meuTotal").textContent = moeda(pendentes.reduce((s, r) => s + Number(r.valor || 0), 0));
+  document.getElementById("meuQtd").textContent = pendentes.length;
+
+  document.querySelector("#tMeus tbody").innerHTML = meus.slice().reverse().map(r =>
+    `<tr><td>${r.data || ""}</td><td>${r.condominio || ""}</td><td>${r.categoria || ""}</td><td>${r.situacaoTreinamento || "-"}</td><td>${moeda(r.valor)}</td><td><span class="badge">${r.status || "Pendente"}</span></td></tr>`
+  ).join("");
+
+  if (currentUser.perfil !== "MASTER") return;
+
+  const total = rows.reduce((s, r) => s + Number(r.valor || 0), 0);
+  document.getElementById("kpiTotal").textContent = moeda(total);
+  document.getElementById("kpiQtd").textContent = rows.length;
+
+  const porEmpresa = agrupar("empresa");
+  const porSupervisor = agrupar("supervisor");
+  const porPosto = agrupar("condominio");
+
+  document.getElementById("kpiEmp").textContent = porEmpresa[0] ? porEmpresa[0][0] : "-";
+
+  document.querySelector("#tEmpresa tbody").innerHTML = porEmpresa.map(([k, v]) =>
+    `<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`
+  ).join("");
+
+  document.querySelector("#tSupervisor tbody").innerHTML = porSupervisor.map(([k, v]) =>
+    `<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`
+  ).join("");
+
+  document.querySelector("#tPosto tbody").innerHTML = porPosto.map(([k, v]) =>
+    `<tr><td>${k}</td><td>${moeda(v.valor)}</td><td>${v.qtd}</td></tr>`
+  ).join("");
+
+  document.querySelector("#tValidacao tbody").innerHTML = rows.slice().reverse().map(r =>
+    `<tr><td>${r.data || ""}</td><td>${r.supervisor || ""}</td><td>${r.empresa || ""}</td><td>${r.condominio || ""}</td><td>${r.categoria || ""}</td><td>${r.situacaoTreinamento || "-"}</td><td>${moeda(r.valor)}</td><td>${r.status || "Pendente"}</td><td><button class="ok" onclick="validar('${r.id}','Aprovado')">Aprovar</button> <button class="danger" onclick="validar('${r.id}','Reprovado')">Reprovar</button></td></tr>`
+  ).join("");
+
+  const treinamentos = rows.filter(r => r.categoria === "Treinamento");
+  document.querySelector("#tTreinamentos tbody").innerHTML = treinamentos.slice().reverse().map(r =>
+    `<tr><td>${r.data || ""}</td><td>${r.supervisor || ""}</td><td>${r.condominio || ""}</td><td>${r.executor || ""}</td><td>${r.situacaoTreinamento || "-"}</td><td>${r.motivoReprovacaoTreinamento || "-"}</td><td>${moeda(r.valor)}</td></tr>`
+  ).join("");
+}
+
+const saved = localStorage.getItem(SESSION);
+if (saved) {
+  currentUser = JSON.parse(saved);
+  iniciarSessao();
+  carregar();
+}
 </script>
 </body>
 </html>
