@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>+Valor Operacional V5.9</title>
+<title>+Valor Operacional V5.10</title>
 <style>
 body{margin:0;font-family:Arial;background:#0f172a;color:#f8fafc}
 header{padding:16px;background:#020617}
@@ -23,7 +23,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 </head>
 <body>
 <header>
-<h2>+Valor Operacional V5.9</h2>
+<h2>+Valor Operacional V5.10</h2>
 <div id="userBar" class="muted">Login por perfil • Treinamentos • Validação Master</div>
 </header>
 
@@ -53,7 +53,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <button class="ok" onclick="entrar()">Entrar</button>
 <button class="primary" onclick="testarApiLogin()">Testar API</button>
 <button class="danger" onclick="limparCacheSistema()">Limpar cache</button>
-<p class="muted">As configurações do sistema ficam disponíveis somente para o usuário Master.</p><p class="muted">Versão V5.9: login com diagnóstico de API.</p><p><a href="index2.html" style="color:#93c5fd">Configurar URL do Web App</a></p>
+<p class="muted">As configurações do sistema ficam disponíveis somente para o usuário Master.</p><p class="muted">Versão V5.10: login com diagnóstico de API.</p><p><a href="index2.html" style="color:#93c5fd">Configurar URL do Web App</a></p>
 <div id="loginStatus" class="muted"></div>
 </div>
 </section>
@@ -217,7 +217,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 <h3>Configuração Master</h3>
 <label>URL Apps Script</label><input id="apiUrl">
 <button class="ok" onclick="salvarConfig()">Salvar URL</button>
-<button class="primary" onclick="rodarSetup()">Testar / Setup V5.9</button>
+<button class="primary" onclick="rodarSetup()">Testar / Setup V5.10</button>
 <p class="muted">Esta tela só aparece para o Master. Os supervisores não veem a URL do Web App.</p>
 </div>
 </section>
@@ -225,8 +225,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
 <script>
 const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycbxoyg9EEaC8YFQmFcOWrtAt-KBpmGfaTjM3GzVbQ12ZJ2Gnc1bbDgT_cVHAES0WlLmm/exec";
-const APIK = "mv_api_v59";
-const SESSION = "mv_session_v59";
+const APIK = "mv_api_v510";
+const SESSION = "mv_session_v510";
 let rows = [];
 let currentUser = null;
 let efetivoRows = [];
@@ -390,7 +390,7 @@ function show(id) {
   const btn = document.getElementById("b-" + id);
   if (btn) btn.classList.add("active");
   render();
-  if (currentUser && currentUser.perfil === "MASTER") { try { const ef = await apiGet("efetivo"); efetivoRows = Array.isArray(ef) ? ef : []; } catch(e) {} render(); }
+  if (currentUser && currentUser.perfil === "MASTER") { carregarEfetivo().catch(() => {}); }
 }
 
 function toggleTreinamento() {
@@ -410,6 +410,9 @@ async function carregar() {
   const resp = await jsonp("lancamentos", { user: currentUser.login, role: currentUser.perfil });
   rows = Array.isArray(resp) ? resp : [];
   rows = rows.map(x => ({ ...x, valor: Number(String(x.valor || 0).replace(",", ".")) || 0 }));
+  if (currentUser && currentUser.perfil === "MASTER") {
+    try { const ef = await apiGet("efetivo"); efetivoRows = Array.isArray(ef) ? ef : []; } catch(e) {}
+  }
   render();
 }
 
